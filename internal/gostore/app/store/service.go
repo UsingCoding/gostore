@@ -22,6 +22,8 @@ type Service interface {
 	List(ctx context.Context, params ListParams) ([]storage.Entry, error)
 
 	Remove(ctx context.Context, params RemoveParams) error
+
+	Sync(ctx context.Context, params SyncParams) error
 }
 
 func NewStoreService(
@@ -110,7 +112,7 @@ func (service *storeService) Init(ctx context.Context, params InitParams) (InitR
 	}
 
 	if maybe.Valid(params.Remote) {
-		err = s.Sync(ctx)
+		err = s.Push(ctx)
 		if err != nil {
 			return InitRes{}, errors.Wrapf(err, "failed to sync storage")
 		}
@@ -174,6 +176,15 @@ func (service *storeService) Remove(ctx context.Context, params RemoveParams) er
 	defer s.close()
 
 	return s.remove(ctx, params.Path, params.Key)
+}
+
+func (service *storeService) Sync(ctx context.Context, params SyncParams) error {
+	s, err := service.loadStore(ctx, params.CommonParams)
+	if err != nil {
+		return errors.Wrap(err, "failed to load store")
+	}
+
+	return s.sync(ctx)
 }
 
 func (service *storeService) loadStore(ctx context.Context, params CommonParams) (*store, error) {

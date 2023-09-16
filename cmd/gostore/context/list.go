@@ -9,9 +9,10 @@ import (
 
 func list() *cli.Command {
 	return &cli.Command{
-		Name:   "list",
-		Usage:  "List stores",
-		Action: executeList,
+		Name:    "list",
+		Aliases: []string{"ls"},
+		Usage:   "List stores",
+		Action:  executeList,
 	}
 }
 

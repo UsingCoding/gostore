@@ -54,10 +54,12 @@ func runApp(ctx context.Context, args []string) error {
 		Usage:   "Secrets store manager",
 		Commands: []*cli.Command{
 			initCmd(),
+			clone(),
 			add(),
 			get(),
 			list(),
 			remove(),
+			sync(),
 			contextcmd.Context(),
 		},
 		Flags: []cli.Flag{

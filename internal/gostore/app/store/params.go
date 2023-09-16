@@ -24,6 +24,8 @@ type InitParams struct {
 type CloneParams struct {
 	CommonParams
 
+	ID string
+
 	StorageType storage.Type
 	Remote      string
 }
@@ -60,4 +62,8 @@ type RemoveParams struct {
 
 	Path string
 	Key  maybe.Maybe[string]
+}
+
+type SyncParams struct {
+	CommonParams
 }

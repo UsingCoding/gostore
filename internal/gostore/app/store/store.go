@@ -187,6 +187,16 @@ func (s *store) remove(ctx context.Context, path string, key maybe.Maybe[string]
 	return nil
 }
 
+func (s *store) sync(ctx context.Context) error {
+	err := s.storage.Pull(ctx)
+	if err != nil {
+		return errors.Wrap(err, "failed to pull storage")
+	}
+
+	err = s.storage.Push(ctx)
+	return errors.Wrap(err, "failed to push storage")
+}
+
 func (s *store) close() error {
 	if !s.changedAdded {
 		return nil

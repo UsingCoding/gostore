@@ -76,15 +76,24 @@ func (s *service) Init(ctx context.Context, params store.InitParams) (store.Init
 }
 
 func (s *service) Clone(ctx context.Context, params store.CloneParams) error {
-	p, err := s.populateCommonParams(ctx, params.CommonParams)
+	err := s.configService.Init(ctx)
 	if err != nil {
 		return err
 	}
 
-	params.CommonParams = p
+	storePath := maybe.MapNone(params.StorePath, func() string {
+		return path.Join(s.configService.GostoreLocation(ctx), params.ID)
+	})
 
-	return s.makeStoreService().
-		Clone(ctx, params)
+	params.StorePath = maybe.NewJust(storePath)
+
+	err = s.makeStoreService().Clone(ctx, params)
+	if err != nil {
+		return err
+	}
+
+	err = s.configService.AddStore(ctx, config.StoreID(params.ID), storePath)
+	return err
 }
 
 func (s *service) Add(ctx context.Context, params store.AddParams) error {
@@ -133,6 +142,18 @@ func (s *service) Remove(ctx context.Context, params store.RemoveParams) error {
 
 	return s.makeStoreService().
 		Remove(ctx, params)
+}
+
+func (s *service) Sync(ctx context.Context, params store.SyncParams) error {
+	p, err := s.populateCommonParams(ctx, params.CommonParams)
+	if err != nil {
+		return err
+	}
+
+	params.CommonParams = p
+
+	return s.makeStoreService().
+		Sync(ctx, params)
 }
 
 func (s *service) populateCommonParams(ctx context.Context, params store.CommonParams) (store.CommonParams, error) {

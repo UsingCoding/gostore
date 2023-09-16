@@ -21,8 +21,10 @@ type Storage interface {
 	AddRemote(ctx context.Context, remoteName string, remoteAddr string) error
 	// HasRemote reports that Storage has remote
 	HasRemote(ctx context.Context) (bool, error)
-	// Sync storage with remotes if there is one
-	Sync(ctx context.Context) error
+	// Push storage to remote if there is one
+	Push(ctx context.Context) error
+	// Pull changes from remote
+	Pull(ctx context.Context) error
 
 	// Commit changes to storage. Semantics depends on storage implementation
 	Commit(ctx context.Context, msg string) error

@@ -24,10 +24,18 @@ func initCmd() *cli.Command {
 				Usage:    "Local store id",
 				Required: true,
 			},
+			&cli.StringFlag{
+				Name:  "store-path",
+				Usage: "Path to new store",
+			},
 			&cli.StringSliceFlag{
 				Name:    "recipients",
 				Usage:   "Pass public key to store",
 				Aliases: []string{"r"},
+			},
+			&cli.StringFlag{
+				Name:  "remote",
+				Usage: "Remote address for store",
 			},
 		},
 	}
@@ -35,7 +43,8 @@ func initCmd() *cli.Command {
 
 func executeInit(ctx *cli.Context) error {
 	storeID := ctx.String("id")
-	storePath := optStringFromCtx(ctx, "store")
+	storePath := optStringFromCtx(ctx, "store-path")
+	remote := optStringFromCtx(ctx, "remote")
 	recipients := ctx.StringSlice("recipients")
 
 	service, _ := newStoreService(ctx)
@@ -49,7 +58,7 @@ func executeInit(ctx *cli.Context) error {
 			return encryption.Recipient(r)
 		}),
 		StorageType: maybe.Maybe[storage.Type]{},
-		Remote:      maybe.Maybe[string]{},
+		Remote:      remote,
 	})
 	if err != nil {
 		return err

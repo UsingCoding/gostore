@@ -154,12 +154,34 @@ func (storage *gitStorage) HasRemote(context.Context) (bool, error) {
 	return len(remotes) != 0, nil
 }
 
-func (storage *gitStorage) Sync(ctx context.Context) error {
+func (storage *gitStorage) Push(ctx context.Context) error {
 	err := storage.repo.PushContext(ctx, &git.PushOptions{
 		RemoteName: remoteName,
 		Auth:       nil,
 	})
-	return errors.Wrap(err, "failed to sync repo")
+	return errors.Wrap(err, "failed to push repo")
+}
+
+func (storage *gitStorage) Pull(ctx context.Context) error {
+	err := storage.repo.FetchContext(ctx, &git.FetchOptions{
+		RemoteName: remoteName,
+	})
+	if err != nil {
+		if errors.Is(err, git.NoErrAlreadyUpToDate) {
+			return nil
+		}
+		return err
+	}
+
+	worktree, err := storage.repo.Worktree()
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	err = worktree.PullContext(ctx, &git.PullOptions{
+		RemoteName: remoteName,
+	})
+	return errors.Wrap(err, "failed to pull from repo")
 }
 
 func (storage *gitStorage) Commit(_ context.Context, msg string) error {
