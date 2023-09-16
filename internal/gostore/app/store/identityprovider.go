@@ -3,8 +3,8 @@ package store
 import (
 	"context"
 
-	"gostore/internal/common/maybe"
-	"gostore/internal/gostore/app/encryption"
+	"github.com/UsingCoding/gostore/internal/common/maybe"
+	"github.com/UsingCoding/gostore/internal/gostore/app/encryption"
 )
 
 type IdentityProvider interface {

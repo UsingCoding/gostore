@@ -5,8 +5,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	"gostore/internal/gostore/app/store"
-	"gostore/internal/gostore/app/vars"
+	"github.com/UsingCoding/gostore/internal/gostore/app/store"
+	"github.com/UsingCoding/gostore/internal/gostore/app/vars"
 )
 
 func NewSecretSerializer() store.SecretSerializer {

@@ -10,14 +10,14 @@ import (
 
 	"github.com/urfave/cli/v2"
 
-	contextcmd "gostore/cmd/gostore/context"
-	"gostore/internal/common/maybe"
-	"gostore/internal/gostore/app/config"
-	"gostore/internal/gostore/app/service"
-	infraconfig "gostore/internal/gostore/infrastructure/config"
-	"gostore/internal/gostore/infrastructure/encryption"
-	"gostore/internal/gostore/infrastructure/storage"
-	infrastore "gostore/internal/gostore/infrastructure/store"
+	contextcmd "github.com/UsingCoding/gostore/cmd/gostore/context"
+	"github.com/UsingCoding/gostore/internal/common/maybe"
+	"github.com/UsingCoding/gostore/internal/gostore/app/config"
+	"github.com/UsingCoding/gostore/internal/gostore/app/service"
+	infraconfig "github.com/UsingCoding/gostore/internal/gostore/infrastructure/config"
+	"github.com/UsingCoding/gostore/internal/gostore/infrastructure/encryption"
+	"github.com/UsingCoding/gostore/internal/gostore/infrastructure/storage"
+	infrastore "github.com/UsingCoding/gostore/internal/gostore/infrastructure/store"
 )
 
 const (

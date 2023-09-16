@@ -6,10 +6,10 @@ import (
 	"github.com/UsingCoding/fpgo/pkg/slices"
 	"github.com/pkg/errors"
 
-	"gostore/internal/common/maybe"
-	commonstrings "gostore/internal/common/strings"
-	"gostore/internal/gostore/app/encryption"
-	"gostore/internal/gostore/app/storage"
+	"github.com/UsingCoding/gostore/internal/common/maybe"
+	commonstrings "github.com/UsingCoding/gostore/internal/common/strings"
+	"github.com/UsingCoding/gostore/internal/gostore/app/encryption"
+	"github.com/UsingCoding/gostore/internal/gostore/app/storage"
 )
 
 var (

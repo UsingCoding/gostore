@@ -3,8 +3,8 @@ package context
 import (
 	"github.com/urfave/cli/v2"
 
-	"gostore/internal/gostore/app/config"
-	infraconfig "gostore/internal/gostore/infrastructure/config"
+	"github.com/UsingCoding/gostore/internal/gostore/app/config"
+	infraconfig "github.com/UsingCoding/gostore/internal/gostore/infrastructure/config"
 )
 
 func Context() *cli.Command {

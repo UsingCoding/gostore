@@ -4,8 +4,8 @@ import (
 	"context"
 	stderrors "errors"
 
-	"gostore/internal/common/maybe"
-	"gostore/internal/gostore/app/encryption"
+	"github.com/UsingCoding/gostore/internal/common/maybe"
+	"github.com/UsingCoding/gostore/internal/gostore/app/encryption"
 )
 
 type StoreID string

@@ -6,9 +6,9 @@ import (
 	"github.com/urfave/cli/v2"
 	"github.com/xlab/treeprint"
 
-	"gostore/internal/common/maybe"
-	"gostore/internal/gostore/app/storage"
-	"gostore/internal/gostore/app/store"
+	"github.com/UsingCoding/gostore/internal/common/maybe"
+	"github.com/UsingCoding/gostore/internal/gostore/app/storage"
+	"github.com/UsingCoding/gostore/internal/gostore/app/store"
 )
 
 func list() *cli.Command {

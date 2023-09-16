@@ -1,9 +1,9 @@
 package store
 
 import (
-	"gostore/internal/common/maybe"
-	"gostore/internal/gostore/app/encryption"
-	"gostore/internal/gostore/app/storage"
+	"github.com/UsingCoding/gostore/internal/common/maybe"
+	"github.com/UsingCoding/gostore/internal/gostore/app/encryption"
+	"github.com/UsingCoding/gostore/internal/gostore/app/storage"
 )
 
 type CommonParams struct {

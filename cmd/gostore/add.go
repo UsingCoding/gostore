@@ -7,8 +7,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
 
-	"gostore/internal/common/maybe"
-	"gostore/internal/gostore/app/store"
+	"github.com/UsingCoding/gostore/internal/common/maybe"
+	"github.com/UsingCoding/gostore/internal/gostore/app/store"
 )
 
 func add() *cli.Command {

@@ -6,10 +6,10 @@ import (
 	"github.com/UsingCoding/fpgo/pkg/slices"
 	"github.com/pkg/errors"
 
-	"gostore/internal/gostore/app/encryption"
-	"gostore/internal/gostore/app/storage"
-	"gostore/internal/gostore/app/store"
-	"gostore/internal/gostore/app/vars"
+	"github.com/UsingCoding/gostore/internal/gostore/app/encryption"
+	"github.com/UsingCoding/gostore/internal/gostore/app/storage"
+	"github.com/UsingCoding/gostore/internal/gostore/app/store"
+	"github.com/UsingCoding/gostore/internal/gostore/app/vars"
 )
 
 func NewManifestSerializer() store.ManifestSerializer {

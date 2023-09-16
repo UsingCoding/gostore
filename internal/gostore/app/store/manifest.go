@@ -1,8 +1,8 @@
 package store
 
 import (
-	"gostore/internal/gostore/app/encryption"
-	"gostore/internal/gostore/app/storage"
+	"github.com/UsingCoding/gostore/internal/gostore/app/encryption"
+	"github.com/UsingCoding/gostore/internal/gostore/app/storage"
 )
 
 const (

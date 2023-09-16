@@ -9,7 +9,7 @@ import (
 	"github.com/UsingCoding/fpgo/pkg/slices"
 	"github.com/pkg/errors"
 
-	"gostore/internal/gostore/app/encryption"
+	"github.com/UsingCoding/gostore/internal/gostore/app/encryption"
 )
 
 func newAgeService() encService {

@@ -9,8 +9,8 @@ import (
 	"github.com/go-git/go-git/v5/config"
 	"github.com/pkg/errors"
 
-	"gostore/internal/common/maybe"
-	"gostore/internal/gostore/app/storage"
+	"github.com/UsingCoding/gostore/internal/common/maybe"
+	"github.com/UsingCoding/gostore/internal/gostore/app/storage"
 )
 
 const (

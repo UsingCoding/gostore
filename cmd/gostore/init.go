@@ -7,10 +7,10 @@ import (
 	"github.com/UsingCoding/fpgo/pkg/slices"
 	"github.com/urfave/cli/v2"
 
-	"gostore/internal/common/maybe"
-	"gostore/internal/gostore/app/encryption"
-	"gostore/internal/gostore/app/storage"
-	"gostore/internal/gostore/app/store"
+	"github.com/UsingCoding/gostore/internal/common/maybe"
+	"github.com/UsingCoding/gostore/internal/gostore/app/encryption"
+	"github.com/UsingCoding/gostore/internal/gostore/app/storage"
+	"github.com/UsingCoding/gostore/internal/gostore/app/store"
 )
 
 func initCmd() *cli.Command {

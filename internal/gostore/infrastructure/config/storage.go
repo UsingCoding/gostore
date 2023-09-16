@@ -9,10 +9,10 @@ import (
 	"github.com/UsingCoding/fpgo/pkg/slices"
 	"github.com/pkg/errors"
 
-	"gostore/internal/common/maybe"
-	appconfig "gostore/internal/gostore/app/config"
-	"gostore/internal/gostore/app/encryption"
-	"gostore/internal/gostore/app/vars"
+	"github.com/UsingCoding/gostore/internal/common/maybe"
+	appconfig "github.com/UsingCoding/gostore/internal/gostore/app/config"
+	"github.com/UsingCoding/gostore/internal/gostore/app/encryption"
+	"github.com/UsingCoding/gostore/internal/gostore/app/vars"
 )
 
 const (

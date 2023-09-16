@@ -9,9 +9,9 @@ import (
 	"github.com/go-git/go-git/v5/config"
 	"github.com/pkg/errors"
 
-	"gostore/internal/common/maybe"
-	commonstrings "gostore/internal/common/strings"
-	appstorage "gostore/internal/gostore/app/storage"
+	"github.com/UsingCoding/gostore/internal/common/maybe"
+	commonstrings "github.com/UsingCoding/gostore/internal/common/strings"
+	appstorage "github.com/UsingCoding/gostore/internal/gostore/app/storage"
 )
 
 var (

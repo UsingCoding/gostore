@@ -3,7 +3,7 @@ package encryption
 import (
 	"github.com/pkg/errors"
 
-	"gostore/internal/gostore/app/encryption"
+	"github.com/UsingCoding/gostore/internal/gostore/app/encryption"
 )
 
 func NewManager() encryption.Manager {

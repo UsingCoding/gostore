@@ -3,7 +3,7 @@ package storage
 import (
 	"context"
 
-	"gostore/internal/common/maybe"
+	"github.com/UsingCoding/gostore/internal/common/maybe"
 )
 
 type Storage interface {

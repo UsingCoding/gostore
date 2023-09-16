@@ -6,11 +6,11 @@ import (
 
 	"github.com/pkg/errors"
 
-	"gostore/internal/common/maybe"
-	"gostore/internal/gostore/app/config"
-	"gostore/internal/gostore/app/encryption"
-	"gostore/internal/gostore/app/storage"
-	"gostore/internal/gostore/app/store"
+	"github.com/UsingCoding/gostore/internal/common/maybe"
+	"github.com/UsingCoding/gostore/internal/gostore/app/config"
+	"github.com/UsingCoding/gostore/internal/gostore/app/encryption"
+	"github.com/UsingCoding/gostore/internal/gostore/app/storage"
+	"github.com/UsingCoding/gostore/internal/gostore/app/store"
 )
 
 type Service interface {
