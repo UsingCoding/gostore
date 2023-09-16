@@ -98,14 +98,16 @@ func subscribeForKillSignals(ctx context.Context) context.Context {
 func newStoreService(ctx *cli.Context) (service.Service, config.Service) {
 	gostoreBaseDir := ctx.String("gostore-base-path")
 
+	storageManager := storage.NewManager()
 	configService := config.NewService(
 		infraconfig.NewStorage(gostoreBaseDir),
 		gostoreBaseDir,
+		storageManager,
 	)
 
 	return service.NewService(
 		configService,
-		storage.NewManager(),
+		storageManager,
 		encryption.NewManager(),
 		infrastore.NewManifestSerializer(),
 		infrastore.NewSecretSerializer(),

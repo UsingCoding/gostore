@@ -26,10 +26,9 @@ func clone() *cli.Command {
 				Usage: "Clone store into store-path",
 			},
 			&cli.StringFlag{
-				Name:     "storage-type",
-				Usage:    "Storage type to detect clone strategy",
-				Required: true,
-				Value:    string(storage.GITType),
+				Name:  "storage-type",
+				Usage: "Storage type to detect clone strategy",
+				Value: string(storage.GITType),
 			},
 		},
 	}

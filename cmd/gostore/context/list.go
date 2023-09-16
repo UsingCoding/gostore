@@ -25,7 +25,12 @@ func executeList(ctx *cli.Context) error {
 	}
 
 	for _, store := range stores {
-		msg := fmt.Sprintf("%s: %s\n", store.ID, store.Path)
+		var currentPtr string
+		if store.Current {
+			currentPtr = "*"
+		}
+
+		msg := fmt.Sprintf("%s%s: %s\n", currentPtr, store.ID, store.Path)
 		_, _ = os.Stdout.WriteString(msg)
 	}
 

@@ -6,12 +6,20 @@ import (
 	stderrors "errors"
 	"slices"
 
+	fpslices "github.com/UsingCoding/fpgo/pkg/slices"
 	"github.com/pkg/errors"
 
 	"github.com/UsingCoding/gostore/internal/common/maybe"
 	"github.com/UsingCoding/gostore/internal/gostore/app/encryption"
+	"github.com/UsingCoding/gostore/internal/gostore/app/storage"
 	"github.com/UsingCoding/gostore/internal/gostore/app/store"
 )
+
+type StoreView struct {
+	ID      StoreID
+	Path    string
+	Current bool
+}
 
 type Service interface {
 	Init(ctx context.Context) error
@@ -21,21 +29,33 @@ type Service interface {
 	CurrentStoreID(ctx context.Context) (maybe.Maybe[StoreID], error)
 	CurrentStorePath(ctx context.Context) (maybe.Maybe[string], error)
 	GostoreLocation(ctx context.Context) string
-	ListStores(ctx context.Context) ([]Store, error)
+	ListStores(ctx context.Context) ([]StoreView, error)
 
 	AddIdentity(ctx context.Context, identities ...encryption.Identity) error
 	AddStore(ctx context.Context, storeID StoreID, path string) error
 
+	RemoveStore(ctx context.Context, storeID StoreID) error
+
 	store.IdentityProvider
 }
 
-func NewService(storage Storage, gostoreLocation string) Service {
-	return &service{storage: storage, gostoreLocation: gostoreLocation}
+func NewService(
+	storage Storage,
+	gostoreLocation string,
+	storageManager storage.Manager,
+) Service {
+	return &service{
+		storage:         storage,
+		gostoreLocation: gostoreLocation,
+		storageManager:  storageManager,
+	}
 }
 
 type service struct {
 	storage         Storage
 	gostoreLocation string
+
+	storageManager storage.Manager
 }
 
 func (s *service) Init(ctx context.Context) error {
@@ -108,13 +128,19 @@ func (s *service) GostoreLocation(context.Context) string {
 	return s.gostoreLocation
 }
 
-func (s *service) ListStores(ctx context.Context) ([]Store, error) {
+func (s *service) ListStores(ctx context.Context) ([]StoreView, error) {
 	config, err := s.storage.Load(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to load config")
 	}
 
-	return config.Stores, nil
+	return fpslices.Map(config.Stores, func(s Store) StoreView {
+		return StoreView{
+			ID:      s.ID,
+			Path:    s.Path,
+			Current: maybe.Valid(config.Context) && maybe.Just(config.Context) == s.ID,
+		}
+	}), nil
 }
 
 func (s *service) AddIdentity(ctx context.Context, identities ...encryption.Identity) error {
@@ -165,6 +191,43 @@ func (s *service) AddStore(ctx context.Context, storeID StoreID, path string) er
 	// if there is no store in context set new store to context
 	if !maybe.Valid(config.Context) {
 		config.Context = maybe.NewJust(storeID)
+	}
+
+	err = s.storage.Store(ctx, config)
+	return err
+}
+
+func (s *service) RemoveStore(ctx context.Context, storeID StoreID) error {
+	config, err := s.storage.Load(ctx)
+	if err != nil {
+		return errors.Wrap(err, "failed to load config")
+	}
+
+	i := slices.IndexFunc(config.Stores, func(s Store) bool {
+		return s.ID == storeID
+	})
+
+	if i == -1 {
+		return errors.Errorf("store %s not found to remove", storeID)
+	}
+
+	storeToRemove := config.Stores[i]
+
+	err = s.storageManager.Remove(ctx, storeToRemove.Path)
+	if err != nil {
+		return errors.Wrap(err, "failed to remove store")
+	}
+
+	config.Stores = append(config.Stores[:i], config.Stores[i+1:]...)
+
+	if maybe.Valid(config.Context) && maybe.Just(config.Context) == storeID {
+		// reset current context
+		config.Context = maybe.NewNone[StoreID]()
+
+		// set as current store first existed store
+		if len(config.Stores) > 0 {
+			config.Context = maybe.NewJust(config.Stores[0].ID)
+		}
 	}
 
 	err = s.storage.Store(ctx, config)
