@@ -1,4 +1,4 @@
-module gostore
+module github.com/UsingCoding/gostore
 
 go 1.21
 
