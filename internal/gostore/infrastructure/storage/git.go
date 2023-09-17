@@ -159,6 +159,9 @@ func (storage *gitStorage) Push(ctx context.Context) error {
 		RemoteName: remoteName,
 		Auth:       nil,
 	})
+	if errors.Is(err, git.NoErrAlreadyUpToDate) {
+		return nil
+	}
 	return errors.Wrap(err, "failed to push repo")
 }
 
