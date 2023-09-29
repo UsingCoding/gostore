@@ -84,7 +84,14 @@ func (s *store) copy(ctx context.Context, src, dst string) error {
 		return err
 	}
 
-	return s.storage.Copy(ctx, src, dst)
+	err = s.storage.Copy(ctx, src, dst)
+	if err != nil {
+		return err
+	}
+
+	s.changedAdded = true
+
+	return nil
 }
 
 func (s *store) move(ctx context.Context, src, dst string) error {
@@ -93,7 +100,14 @@ func (s *store) move(ctx context.Context, src, dst string) error {
 		return err
 	}
 
-	return s.storage.Move(ctx, src, dst)
+	err = s.storage.Move(ctx, src, dst)
+	if err != nil {
+		return err
+	}
+
+	s.changedAdded = true
+
+	return nil
 }
 
 func (s *store) get(ctx context.Context, path string, key maybe.Maybe[string]) ([]SecretData, error) {

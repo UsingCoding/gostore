@@ -94,7 +94,17 @@ func (storage *gitStorage) Copy(_ context.Context, src, dst string) error {
 	dstPath := path.Join(storage.repoDir, dst)
 
 	err := copyPath(srcPath, dstPath)
-	return errors.Wrapf(err, "failed to copy %s to %s", src, dst)
+	if err != nil {
+		return errors.Wrapf(err, "failed to copy %s to %s", src, dst)
+	}
+
+	worktree, err := storage.repo.Worktree()
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	_, err = worktree.Add(dst)
+	return errors.Wrapf(err, "failed to add to index copy %s to %s", src, dst)
 }
 
 func (storage *gitStorage) Move(_ context.Context, src, dst string) error {
@@ -109,7 +119,26 @@ func (storage *gitStorage) Move(_ context.Context, src, dst string) error {
 	dstPath := path.Join(storage.repoDir, dst)
 
 	err := move(srcPath, dstPath)
-	return errors.Wrapf(err, "failed to move %s to %s", src, dst)
+	if err != nil {
+		return errors.Wrapf(err, "failed to move %s to %s", src, dst)
+	}
+
+	worktree, err := storage.repo.Worktree()
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	_, err = worktree.Add(src)
+	if err != nil {
+		return errors.Wrapf(err, "failed to commit changes in src %s", src)
+	}
+
+	_, err = worktree.Add(dst)
+	if err != nil {
+		return errors.Wrapf(err, "failed to commit changes in dst %s", dst)
+	}
+
+	return nil
 }
 
 func (storage *gitStorage) Get(_ context.Context, p string) (maybe.Maybe[[]byte], error) {
