@@ -108,6 +108,30 @@ func (s *service) Add(ctx context.Context, params store.AddParams) error {
 		Add(ctx, params)
 }
 
+func (s *service) Copy(ctx context.Context, params store.CopyParams) error {
+	p, err := s.populateCommonParams(ctx, params.CommonParams)
+	if err != nil {
+		return err
+	}
+
+	params.CommonParams = p
+
+	return s.makeStoreService().
+		Copy(ctx, params)
+}
+
+func (s *service) Move(ctx context.Context, params store.MoveParams) error {
+	p, err := s.populateCommonParams(ctx, params.CommonParams)
+	if err != nil {
+		return err
+	}
+
+	params.CommonParams = p
+
+	return s.makeStoreService().
+		Move(ctx, params)
+}
+
 func (s *service) Get(ctx context.Context, params store.GetParams) ([]store.SecretData, error) {
 	p, err := s.populateCommonParams(ctx, params.CommonParams)
 	if err != nil {

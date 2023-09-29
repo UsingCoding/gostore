@@ -13,9 +13,10 @@ import (
 
 func get() *cli.Command {
 	return &cli.Command{
-		Name:   "get",
-		Usage:  "Get secret from storage",
-		Action: executeGet,
+		Name:    "get",
+		Aliases: []string{"cat"},
+		Usage:   "Get secret from storage",
+		Action:  executeGet,
 	}
 }
 

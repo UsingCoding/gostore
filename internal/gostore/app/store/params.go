@@ -44,6 +44,20 @@ type AddParams struct {
 	Data []byte
 }
 
+type CopyParams struct {
+	CommonParams
+
+	Src string
+	Dst string
+}
+
+type MoveParams struct {
+	CommonParams
+
+	Src string
+	Dst string
+}
+
 type GetParams struct {
 	CommonParams
 

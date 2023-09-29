@@ -82,6 +82,36 @@ func (storage *gitStorage) Remove(_ context.Context, p string) error {
 	return errors.Wrapf(err, "failed to remove path from git index: %s", fullPath)
 }
 
+func (storage *gitStorage) Copy(_ context.Context, src, dst string) error {
+	if !relativePathForStorage(src) {
+		return errors.Errorf("path to secret is not local: %s", src)
+	}
+	if !relativePathForStorage(dst) {
+		return errors.Errorf("path to secret is not local: %s", dst)
+	}
+
+	srcPath := path.Join(storage.repoDir, src)
+	dstPath := path.Join(storage.repoDir, dst)
+
+	err := copyPath(srcPath, dstPath)
+	return errors.Wrapf(err, "failed to copy %s to %s", src, dst)
+}
+
+func (storage *gitStorage) Move(_ context.Context, src, dst string) error {
+	if !relativePathForStorage(src) {
+		return errors.Errorf("path to secret is not local: %s", src)
+	}
+	if !relativePathForStorage(dst) {
+		return errors.Errorf("path to secret is not local: %s", dst)
+	}
+
+	srcPath := path.Join(storage.repoDir, src)
+	dstPath := path.Join(storage.repoDir, dst)
+
+	err := move(srcPath, dstPath)
+	return errors.Wrapf(err, "failed to move %s to %s", src, dst)
+}
+
 func (storage *gitStorage) Get(_ context.Context, p string) (maybe.Maybe[[]byte], error) {
 	if !relativePathForStorage(p) {
 		return maybe.NewNone[[]byte](), errors.Errorf("path to secret is not local: %s", p)

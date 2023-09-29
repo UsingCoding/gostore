@@ -36,7 +36,7 @@ func (s *store) add(
 	key maybe.Maybe[string],
 	data []byte,
 ) error {
-	err := allowedPath(path)
+	err := allowedPaths(path)
 	if err != nil {
 		return err
 	}
@@ -78,8 +78,26 @@ func (s *store) add(
 	return nil
 }
 
+func (s *store) copy(ctx context.Context, src, dst string) error {
+	err := allowedPaths(src, dst)
+	if err != nil {
+		return err
+	}
+
+	return s.storage.Copy(ctx, src, dst)
+}
+
+func (s *store) move(ctx context.Context, src, dst string) error {
+	err := allowedPaths(src, dst)
+	if err != nil {
+		return err
+	}
+
+	return s.storage.Move(ctx, src, dst)
+}
+
 func (s *store) get(ctx context.Context, path string, key maybe.Maybe[string]) ([]SecretData, error) {
-	err := allowedPath(path)
+	err := allowedPaths(path)
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +162,7 @@ func (s *store) list(ctx context.Context, path string) ([]storage.Entry, error) 
 }
 
 func (s *store) remove(ctx context.Context, path string, key maybe.Maybe[string]) error {
-	err := allowedPath(path)
+	err := allowedPaths(path)
 	if err != nil {
 		return err
 	}
@@ -209,10 +227,12 @@ func (s *store) rollback(ctx context.Context) error {
 }
 
 // checks that path is not store internal object
-func allowedPath(path string) error {
-	if !commonstrings.HasPrefix(path, reservedPaths) {
-		return nil
+func allowedPaths(paths ...string) error {
+	for _, p := range paths {
+		if commonstrings.HasPrefix(p, reservedPaths) {
+			return errors.Errorf("access to store internal objects in %s", p)
+		}
 	}
 
-	return errors.Errorf("access to store internal objects")
+	return nil
 }

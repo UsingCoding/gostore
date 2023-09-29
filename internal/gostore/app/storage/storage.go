@@ -12,6 +12,11 @@ type Storage interface {
 	// Remove path from storage
 	Remove(ctx context.Context, path string) error
 
+	// Copy path in storage
+	Copy(ctx context.Context, src, dst string) error
+	// Move path in storage
+	Move(ctx context.Context, src, dst string) error
+
 	// Get data from storage
 	Get(ctx context.Context, path string) (maybe.Maybe[[]byte], error)
 	// List storage entries

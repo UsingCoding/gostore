@@ -18,6 +18,9 @@ type Service interface {
 
 	Add(ctx context.Context, params AddParams) error
 
+	Copy(ctx context.Context, params CopyParams) error
+	Move(ctx context.Context, params MoveParams) error
+
 	Get(ctx context.Context, params GetParams) ([]SecretData, error)
 	List(ctx context.Context, params ListParams) ([]storage.Entry, error)
 
@@ -147,6 +150,26 @@ func (service *storeService) Add(ctx context.Context, params AddParams) error {
 		params.Key,
 		params.Data,
 	)
+}
+
+func (service *storeService) Copy(ctx context.Context, params CopyParams) error {
+	s, err := service.loadStore(ctx, params.CommonParams)
+	if err != nil {
+		return errors.Wrap(err, "failed to load store")
+	}
+	defer s.close()
+
+	return s.copy(ctx, params.Src, params.Dst)
+}
+
+func (service *storeService) Move(ctx context.Context, params MoveParams) error {
+	s, err := service.loadStore(ctx, params.CommonParams)
+	if err != nil {
+		return errors.Wrap(err, "failed to load store")
+	}
+	defer s.close()
+
+	return s.move(ctx, params.Src, params.Dst)
 }
 
 func (service *storeService) Get(ctx context.Context, params GetParams) ([]SecretData, error) {
