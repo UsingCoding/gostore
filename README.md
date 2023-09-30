@@ -60,6 +60,18 @@ gostore get mysite/admin pass
 pass: 1234
 ```
 
+### Move secrets in store
+
+```shell
+gostore mv mysite/admin clientsite/admin
+```
+
+### Copy secrets in store
+
+```shell
+gostore cp mysite/admin clientsite/admin
+```
+
 ### Remove secrets from store
 
 Remove secret:
