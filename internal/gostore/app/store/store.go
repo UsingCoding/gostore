@@ -182,7 +182,12 @@ func (s *store) remove(ctx context.Context, path string, key maybe.Maybe[string]
 	}
 
 	if !maybe.Valid(key) {
-		return s.storage.Remove(ctx, path)
+		err = s.storage.Remove(ctx, path)
+		if err != nil {
+			return err
+		}
+		s.changedAdded = true
+		return nil
 	}
 
 	secretBytes, err := s.storage.Get(ctx, path)
@@ -203,7 +208,11 @@ func (s *store) remove(ctx context.Context, path string, key maybe.Maybe[string]
 
 	// if secret empty - remove from storage
 	if secret.empty() {
-		return s.storage.Remove(ctx, path)
+		err = s.storage.Remove(ctx, path)
+		if err != nil {
+			return err
+		}
+		s.changedAdded = true
 	}
 
 	secretData, err := s.secretSerializer.Serialize(secret)
@@ -215,6 +224,8 @@ func (s *store) remove(ctx context.Context, path string, key maybe.Maybe[string]
 	if err != nil {
 		return err
 	}
+
+	s.changedAdded = true
 
 	return nil
 }
