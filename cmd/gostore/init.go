@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/UsingCoding/fpgo/pkg/slices"
@@ -11,6 +10,7 @@ import (
 	"github.com/UsingCoding/gostore/internal/gostore/app/encryption"
 	"github.com/UsingCoding/gostore/internal/gostore/app/storage"
 	"github.com/UsingCoding/gostore/internal/gostore/app/store"
+	"github.com/UsingCoding/gostore/internal/gostore/infrastructure/consoleoutput"
 )
 
 func initCmd() *cli.Command {
@@ -64,11 +64,12 @@ func executeInit(ctx *cli.Context) error {
 		return err
 	}
 
-	_, _ = os.Stdout.WriteString(fmt.Sprintf("Created store: %s\n", res.StorePath))
+	output := consoleoutput.New(os.Stdout, consoleoutput.WithNewline(true))
+	output.Printf("Created store: %s", res.StorePath)
 	if maybe.Valid(res.GeneratedIdentity) {
-		_, _ = os.Stdout.WriteString("Generated keys:\n")
-		_, _ = os.Stdout.WriteString(fmt.Sprintf("Public key: %s\n", maybe.Just(res.GeneratedIdentity).Recipient))
-		_, _ = os.Stdout.WriteString(fmt.Sprintf("Private key: %s\n", maybe.Just(res.GeneratedIdentity).PrivateKey))
+		output.Printf("Generated keys:")
+		output.Printf("Public key: %s", maybe.Just(res.GeneratedIdentity).Recipient)
+		output.Printf("Private key: %s", maybe.Just(res.GeneratedIdentity).PrivateKey)
 	}
 
 	return nil
