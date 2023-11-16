@@ -9,6 +9,7 @@ import (
 
 	"github.com/UsingCoding/gostore/internal/common/maybe"
 	"github.com/UsingCoding/gostore/internal/gostore/app/store"
+	"github.com/UsingCoding/gostore/internal/gostore/infrastructure/consoleoutput"
 )
 
 func get() *cli.Command {
@@ -17,6 +18,23 @@ func get() *cli.Command {
 		Aliases: []string{"cat"},
 		Usage:   "Get secret from storage",
 		Action:  executeGet,
+		BashComplete: func(ctx *cli.Context) {
+			if ctx.NArg() > 0 {
+				return
+			}
+
+			service, _ := newStoreService(ctx)
+
+			entries, err := service.List(ctx.Context, store.ListParams{})
+			if err != nil {
+				return
+			}
+
+			o := consoleoutput.New(os.Stdout, consoleoutput.WithNewline(true))
+			for _, p := range inlinePaths(entries) {
+				o.Printf(p)
+			}
+		},
 	}
 }
 

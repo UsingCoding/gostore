@@ -49,9 +49,11 @@ func runApp(ctx context.Context, args []string) error {
 	}
 
 	app := &cli.App{
-		Name:    appID,
-		Version: version,
-		Usage:   "Secrets store manager",
+		Name:                 appID,
+		Version:              version,
+		Usage:                "Secrets store manager",
+		EnableBashCompletion: true,
+		Action:               repl,
 		Commands: []*cli.Command{
 			initCmd(),
 			clone(),
@@ -63,6 +65,7 @@ func runApp(ctx context.Context, args []string) error {
 			remove(),
 			sync(),
 			contextcmd.Context(),
+			completion(),
 		},
 		Flags: []cli.Flag{
 			&cli.StringFlag{
