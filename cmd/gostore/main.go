@@ -61,6 +61,7 @@ func runApp(ctx context.Context, args []string) error {
 			add(),
 			get(),
 			edit(),
+			view(),
 			move(),
 			copyCmd(),
 			list(),
