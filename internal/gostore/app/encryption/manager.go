@@ -6,4 +6,7 @@ type Manager interface {
 	// PrivateKey returns private key from host
 	PrivateKey(key Recipient) (PrivateKey, error)
 	EncryptService(encryption Encryption) (Service, error)
+
+	ImportRawIdentity(provider Provider, data []byte) (Identity, error)
+	ExportRawIdentity(identity Identity) ([]byte, error)
 }

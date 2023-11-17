@@ -57,7 +57,12 @@ func (s *storage) Load(context.Context) (appconfig.Config, error) {
 			}
 		}),
 		Identities: slices.Map(c.Identities, func(i identity) encryption.Identity {
+			if i.Provider == "" {
+				// fallback to age provider
+				i.Provider = encryption.AgeIdentityProvider
+			}
 			return encryption.Identity{
+				Provider:   encryption.Provider(i.Provider),
 				Recipient:  encryption.Recipient(i.Recipient),
 				PrivateKey: encryption.PrivateKey(i.PrivateKey),
 			}
@@ -77,7 +82,7 @@ func (s *storage) Store(_ context.Context, c appconfig.Config) error {
 		}
 	}
 
-	data, err := json.Marshal(config{
+	data, err := json.MarshalIndent(config{
 		Kind: string(vars.ConfigKind),
 		Context: maybe.Map(c.Context, func(c appconfig.StoreID) string {
 			return string(c)
@@ -90,11 +95,12 @@ func (s *storage) Store(_ context.Context, c appconfig.Config) error {
 		}),
 		Identities: slices.Map(c.Identities, func(i encryption.Identity) identity {
 			return identity{
+				Provider:   string(i.Provider),
 				Recipient:  string(i.Recipient),
 				PrivateKey: string(i.PrivateKey),
 			}
 		}),
-	})
+	}, "", "    ")
 	if err != nil {
 		return errors.Wrap(err, "failed to marshal config")
 	}
@@ -118,6 +124,7 @@ type store struct {
 }
 
 type identity struct {
+	Provider   string `json:"provider"`
 	Recipient  string `json:"recipient"`
 	PrivateKey string `json:"privateKey"`
 }

@@ -34,6 +34,9 @@ type Service interface {
 	AddIdentity(ctx context.Context, identities ...encryption.Identity) error
 	AddStore(ctx context.Context, storeID StoreID, path string) error
 
+	ImportRawIdentity(ctx context.Context, provider encryption.Provider, data []byte) error
+	ExportRawIdentity(ctx context.Context, recipients ...encryption.Recipient) ([][]byte, error)
+
 	RemoveStore(ctx context.Context, storeID StoreID) error
 
 	store.IdentityProvider
@@ -43,11 +46,13 @@ func NewService(
 	storage Storage,
 	gostoreLocation string,
 	storageManager storage.Manager,
+	encryptionManager encryption.Manager,
 ) Service {
 	return &service{
-		storage:         storage,
-		gostoreLocation: gostoreLocation,
-		storageManager:  storageManager,
+		storage:           storage,
+		gostoreLocation:   gostoreLocation,
+		storageManager:    storageManager,
+		encryptionManager: encryptionManager,
 	}
 }
 
@@ -55,7 +60,8 @@ type service struct {
 	storage         Storage
 	gostoreLocation string
 
-	storageManager storage.Manager
+	storageManager    storage.Manager
+	encryptionManager encryption.Manager
 }
 
 func (s *service) Init(ctx context.Context) error {
@@ -195,6 +201,56 @@ func (s *service) AddStore(ctx context.Context, storeID StoreID, path string) er
 
 	err = s.storage.Store(ctx, config)
 	return err
+}
+
+func (s *service) ImportRawIdentity(ctx context.Context, provider encryption.Provider, data []byte) error {
+	config, err := s.storage.Load(ctx)
+	if err != nil {
+		return errors.Wrap(err, "failed to load config")
+	}
+
+	identity, err := s.encryptionManager.ImportRawIdentity(provider, data)
+	if err != nil {
+		return err
+	}
+
+	i := slices.IndexFunc(config.Identities, func(i encryption.Identity) bool {
+		return bytes.Equal(i.Recipient, identity.Recipient)
+	})
+
+	if i != -1 {
+		return errors.Errorf("identity with recipient %s alrteady added", identity.Recipient)
+	}
+	config.Identities = append(config.Identities, identity)
+
+	return s.storage.Store(ctx, config)
+}
+
+func (s *service) ExportRawIdentity(ctx context.Context, recipients ...encryption.Recipient) ([][]byte, error) {
+	config, err := s.storage.Load(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to load config")
+	}
+
+	var res [][]byte
+	for _, recipient := range recipients {
+		i := slices.IndexFunc(config.Identities, func(i encryption.Identity) bool {
+			return bytes.Equal(i.Recipient, recipient)
+		})
+
+		if i == -1 {
+			return nil, errors.Errorf("identity for %s not found", recipient)
+		}
+
+		identity := config.Identities[i]
+		data, err2 := s.encryptionManager.ExportRawIdentity(identity)
+		if err2 != nil {
+			return nil, errors.Wrapf(err2, "failed to export raw identity for %s", identity.Recipient)
+		}
+		res = append(res, data)
+	}
+
+	return res, nil
 }
 
 func (s *service) RemoveStore(ctx context.Context, storeID StoreID) error {

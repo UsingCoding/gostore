@@ -6,6 +6,7 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"github.com/UsingCoding/gostore/internal/gostore/app/store"
+	"github.com/UsingCoding/gostore/internal/gostore/infrastructure/consoleoutput"
 )
 
 func sync() *cli.Command {
@@ -27,6 +28,8 @@ func executeSync(ctx *cli.Context) error {
 		return err
 	}
 
-	_, _ = os.Stdout.WriteString("Synced\n")
+	o := consoleoutput.New(os.Stdout, consoleoutput.WithNewline(true))
+	o.OKf("Synced")
+
 	return nil
 }

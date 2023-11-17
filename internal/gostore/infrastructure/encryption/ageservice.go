@@ -2,6 +2,7 @@ package encryption
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 
 	"filippo.io/age"
@@ -80,9 +81,43 @@ func (s *ageService) generateIdentity() (encryption.Identity, error) {
 	}
 
 	return encryption.Identity{
+		Provider:   encryption.AgeIdentityProvider,
 		Recipient:  encryption.Recipient(identity.Recipient().String()),
 		PrivateKey: encryption.PrivateKey(identity.String()),
 	}, nil
+}
+
+func (s *ageService) loadRawIdentity(data []byte) (encryption.Identity, error) {
+	identities, err := age.ParseIdentities(bytes.NewBuffer(data))
+	if err != nil {
+		return encryption.Identity{}, err
+	}
+
+	if len(identities) != 1 {
+		return encryption.Identity{}, errors.Wrapf(err, "invalid count of parsed identities: %d", len(identities))
+	}
+
+	i, ok := identities[0].(*age.X25519Identity)
+	if !ok {
+		return encryption.Identity{}, errors.Wrap(err, "not X25519 identity passed")
+	}
+
+	return encryption.Identity{
+		Provider:   encryption.AgeIdentityProvider,
+		Recipient:  encryption.Recipient(i.Recipient().String()),
+		PrivateKey: encryption.PrivateKey(i.String()),
+	}, nil
+}
+
+func (s *ageService) exportRawIdentity(identity encryption.Identity) ([]byte, error) {
+	i, err := age.ParseX25519Identity(string(identity.PrivateKey))
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	// create raw identity in age format with recipient in comment
+	raw := []byte(fmt.Sprintf(`# %s%s%s`, i.Recipient(), "\n", i))
+	return raw, nil
 }
 
 func (s *ageService) mapIdentity(identity encryption.Identity) (age.Identity, error) {

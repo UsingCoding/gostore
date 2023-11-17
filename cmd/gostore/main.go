@@ -11,6 +11,7 @@ import (
 	"github.com/urfave/cli/v2"
 
 	contextcmd "github.com/UsingCoding/gostore/cmd/gostore/context"
+	identitycmd "github.com/UsingCoding/gostore/cmd/gostore/identity"
 	"github.com/UsingCoding/gostore/internal/common/maybe"
 	"github.com/UsingCoding/gostore/internal/gostore/app/config"
 	"github.com/UsingCoding/gostore/internal/gostore/app/service"
@@ -66,6 +67,7 @@ func runApp(ctx context.Context, args []string) error {
 			remove(),
 			sync(),
 			contextcmd.Context(),
+			identitycmd.Identity(),
 			completion(),
 		},
 		Flags: []cli.Flag{
@@ -109,6 +111,7 @@ func newStoreService(ctx *cli.Context) (service.Service, config.Service) {
 		infraconfig.NewStorage(gostoreBaseDir),
 		gostoreBaseDir,
 		storageManager,
+		encryption.NewManager(),
 	)
 
 	return service.NewService(

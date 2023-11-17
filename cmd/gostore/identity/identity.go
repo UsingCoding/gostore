@@ -1,4 +1,4 @@
-package context
+package identity
 
 import (
 	"github.com/urfave/cli/v2"
@@ -9,14 +9,13 @@ import (
 	"github.com/UsingCoding/gostore/internal/gostore/infrastructure/storage"
 )
 
-func Context() *cli.Command {
+func Identity() *cli.Command {
 	return &cli.Command{
-		Name:  "stores",
-		Usage: "Manage stores",
+		Name:  "identity",
+		Usage: "Manage identities",
 		Subcommands: []*cli.Command{
-			use(),
-			list(),
-			remove(),
+			export(),
+			importCmd(),
 		},
 	}
 }

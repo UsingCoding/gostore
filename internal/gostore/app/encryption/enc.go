@@ -1,6 +1,13 @@
 package encryption
 
+type Provider string
+
+const (
+	AgeIdentityProvider = "age"
+)
+
 type Identity struct {
+	Provider
 	Recipient
 	PrivateKey
 }
