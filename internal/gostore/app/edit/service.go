@@ -2,17 +2,12 @@ package edit
 
 import (
 	"context"
-	stderrors "errors"
 
 	"github.com/pkg/errors"
 
 	"github.com/UsingCoding/gostore/internal/common/maybe"
 	appservice "github.com/UsingCoding/gostore/internal/gostore/app/service"
 	"github.com/UsingCoding/gostore/internal/gostore/app/store"
-)
-
-var (
-	ErrSecretNotFound = stderrors.New("secret not found")
 )
 
 type Service interface {
@@ -36,32 +31,15 @@ func (s *service) Edit(ctx context.Context, p string, key maybe.Maybe[string]) e
 		return err
 	}
 
-	if len(data) == 0 {
-		return errors.Wrap(ErrSecretNotFound, p)
-	}
-
-	var secret maybe.Maybe[store.SecretData]
-	if maybe.Valid(key) {
-		for _, d := range data {
-			if d.Name == maybe.Just(key) {
-				secret = maybe.NewJust(d)
-			}
-		}
-		if !maybe.Valid(secret) {
-			return errors.Errorf("key %s not found in %s", maybe.Just(key), p)
-		}
-	} else {
-		for _, d := range data {
-			if d.Default {
-				secret = maybe.NewJust(d)
-			}
-		}
-		if !maybe.Valid(secret) {
-			return errors.Errorf("no default record found in %s", p)
+	var payload []byte
+	if len(data) != 0 {
+		payload, err = payloadFromData(data, p, key)
+		if err != nil {
+			return err
 		}
 	}
 
-	edited, err := s.editor.Edit(ctx, p, maybe.Just(secret).Payload)
+	edited, err := s.editor.Edit(ctx, p, payload)
 	if err != nil {
 		return err
 	}
@@ -71,4 +49,25 @@ func (s *service) Edit(ctx context.Context, p string, key maybe.Maybe[string]) e
 		Key:  key,
 		Data: edited,
 	})
+}
+
+func payloadFromData(data []store.SecretData, p string, key maybe.Maybe[string]) ([]byte, error) {
+	if maybe.Valid(key) {
+		for _, d := range data {
+			if d.Name == maybe.Just(key) {
+				return d.Payload, nil
+			}
+		}
+
+		// allow to create new key in secret
+		return nil, nil
+	}
+
+	for _, d := range data {
+		if d.Default {
+			return d.Payload, nil
+		}
+	}
+
+	return nil, errors.Errorf("no default record found in %s", p)
 }
