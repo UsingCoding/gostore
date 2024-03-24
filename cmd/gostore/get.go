@@ -75,6 +75,13 @@ func executeGet(ctx *cli.Context) error {
 		return nil
 	}
 
+	// there is request for specific key in secret, print it without kv formatting
+	if maybe.Valid(key) {
+		s := secretsData[0]
+		_, _ = os.Stdout.Write(s.Payload)
+		return nil
+	}
+
 	for _, data := range secretsData {
 		msg := fmt.Sprintf("%s: %s", data.Name, data.Payload)
 		_, _ = os.Stdout.WriteString(msg)
