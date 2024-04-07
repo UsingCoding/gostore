@@ -1,6 +1,8 @@
 package store
 
 import (
+	"github.com/pkg/errors"
+	"maps"
 	"slices"
 
 	"github.com/UsingCoding/gostore/internal/common/maybe"
@@ -23,7 +25,16 @@ func (s *Secret) addData(key maybe.Maybe[string], data []byte) {
 	s.Payload[k] = data
 }
 
-func (s *Secret) get(key maybe.Maybe[string]) []SecretData {
+func (s *Secret) getByKey(key string) maybe.Maybe[[]byte] {
+	data, exists := s.Payload[key]
+	if !exists {
+		return maybe.Maybe[[]byte]{}
+	}
+
+	return maybe.NewJust(data)
+}
+
+func (s *Secret) getAll(key maybe.Maybe[string]) []SecretData {
 	if maybe.Valid(key) {
 		k := maybe.Just(key)
 		data, exists := s.Payload[k]
@@ -55,6 +66,44 @@ func (s *Secret) get(key maybe.Maybe[string]) []SecretData {
 	}
 
 	return secrets
+}
+
+func (s *Secret) iterate(f func(k string, v []byte) error) error {
+	for k, v := range s.Payload {
+		err := f(k, v)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s *Secret) encrypt(encryptor func(data []byte) ([]byte, error)) (err error) {
+	for k, v := range s.Payload {
+		v, err = encryptor(v)
+		if err != nil {
+			return errors.Wrap(err, "failed to encrypt secret value")
+		}
+		s.Payload[k] = v
+	}
+	return nil
+}
+
+func (s *Secret) decrypt(decryptor func(data []byte) ([]byte, error)) (err error) {
+	for k, v := range s.Payload {
+		v, err = decryptor(v)
+		if err != nil {
+			return errors.Wrap(err, "failed to decrypt secret value")
+		}
+		s.Payload[k] = v
+	}
+	return nil
+}
+
+func (s *Secret) clone() Secret {
+	return Secret{
+		Payload: maps.Clone(s.Payload),
+	}
 }
 
 func (s *Secret) remove(key string) {

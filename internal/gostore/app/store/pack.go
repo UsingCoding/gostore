@@ -1,6 +1,7 @@
 package store
 
 import (
+	"bytes"
 	"context"
 	stderrors "errors"
 	"github.com/UsingCoding/fpgo/pkg/slices"
@@ -11,6 +12,11 @@ import (
 )
 
 func (s *store) unpack(ctx context.Context) (err error) {
+	err = s.assertPacked()
+	if err != nil {
+		return err
+	}
+
 	defer func() {
 		if err == nil {
 			return
@@ -58,6 +64,11 @@ func (s *store) unpack(ctx context.Context) (err error) {
 }
 
 func (s *store) pack(ctx context.Context) error {
+	err := s.assertUnpacked()
+	if err != nil {
+		return err
+	}
+
 	const root = ""
 	entries, err := s.list(ctx, root)
 	if err != nil {
@@ -92,27 +103,36 @@ func (s *store) packSecret(ctx context.Context, entryPath string) (err error) {
 		return errors.Wrapf(err, "failed to deserialize secret")
 	}
 
-	secret := Secret{Payload: map[string][]byte{}}
+	secret := initSecret()
 	switch {
 	case maybe.Valid(res.Data):
-		encryptedData, err2 := s.encrypt.Encrypt(maybe.Just(res.Data), s.manifest.Recipients)
-		if err2 != nil {
-			return errors.Wrap(err2, "failed to encrypt data")
-		}
-
-		secret.addData(maybe.Maybe[string]{}, encryptedData)
+		secret.addData(maybe.Maybe[string]{}, maybe.Just(res.Data))
 
 	case maybe.Valid(res.Payload):
 		for k, v := range maybe.Just(res.Payload) {
-			encryptedData, err2 := s.encrypt.Encrypt(v, s.manifest.Recipients)
-			if err2 != nil {
-				return errors.Wrap(err2, "failed to encrypt data")
-			}
-
-			secret.addData(maybe.NewJust(k), encryptedData)
+			secret.addData(maybe.NewJust(k), v)
 		}
 	default:
 		return errors.New("unknown secret deserialize result")
+	}
+
+	latest, err := s.storage.GetLatest(ctx, entryPath)
+	if err != nil {
+		return err
+	}
+
+	if maybe.Valid(latest) {
+		secret, err = s.mergeWithLatest(ctx, secret, maybe.Just(latest))
+		if err != nil {
+			return errors.Wrapf(err, "failed to merge secret %s", entryPath)
+		}
+	} else {
+		err = secret.encrypt(func(data []byte) ([]byte, error) {
+			return s.encryption.Encrypt(data, s.manifest.Recipients)
+		})
+		if err != nil {
+			return errors.Wrapf(err, "failed to encrypt secret %s", entryPath)
+		}
 	}
 
 	secretBytes, err := s.secretSerializer.Serialize(secret)
@@ -121,6 +141,45 @@ func (s *store) packSecret(ctx context.Context, entryPath string) (err error) {
 	}
 
 	return s.storage.Store(ctx, entryPath, secretBytes)
+}
+
+func (s *store) mergeWithLatest(ctx context.Context, secret Secret, latestData []byte) (Secret, error) {
+	latest, err := s.secretSerializer.Deserialize(latestData)
+	if err != nil {
+		return Secret{}, errors.Wrap(err, "failed to deserialize latest secret")
+	}
+
+	err = secret.iterate(func(k string, v []byte) error {
+		latestEncryptedV, ok := maybe.JustValid(latest.getByKey(k))
+		if !ok {
+			// new key in secret, nothing to compare
+			return nil
+		}
+
+		latestV, err2 := s.decrypt(ctx, latestEncryptedV)
+		if err2 != nil {
+			return err2
+		}
+
+		eq := bytes.Equal(v, latestV)
+		if eq {
+			secret.addData(maybe.NewJust(k), latestEncryptedV)
+
+			return nil
+		}
+
+		// key value is updated
+		encryptedV, err2 := s.encrypt(v)
+		if err2 != nil {
+			return err2
+		}
+
+		secret.addData(maybe.NewJust(k), encryptedV)
+
+		return nil
+	})
+
+	return secret, err
 }
 
 func inlinePaths(entries []storage.Entry) []string {
@@ -146,4 +205,20 @@ func inlinePaths(entries []storage.Entry) []string {
 		res = append(res, recursiveInlinePath(entry)...)
 	}
 	return res
+}
+
+func (s *store) assertPacked() error {
+	if !s.manifest.Unpacked {
+		return nil
+	}
+
+	return errors.New("store is unpacked")
+}
+
+func (s *store) assertUnpacked() error {
+	if s.manifest.Unpacked {
+		return nil
+	}
+
+	return errors.New("store is packed")
 }

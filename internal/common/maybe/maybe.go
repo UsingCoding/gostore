@@ -33,6 +33,16 @@ func MapNone[T any](m Maybe[T], f func() T) T {
 	return f()
 }
 
+func JustValid[T any](m Maybe[T]) (t T, ok bool) {
+	if !Valid(m) {
+		return
+	}
+
+	t = Just(m)
+	ok = true
+	return
+}
+
 // Map maybe to different type
 func Map[T, E any](m Maybe[T], f func(T) E) Maybe[E] {
 	if !Valid(m) {

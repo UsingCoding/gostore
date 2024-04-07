@@ -22,7 +22,7 @@ type store struct {
 	manifest Manifest
 
 	storage          storage.Storage
-	encrypt          encryption.Service
+	encryption       encryption.Service
 	identityProvider IdentityProvider
 
 	secretSerializer SecretSerializer
@@ -51,9 +51,9 @@ func (s *store) add(
 		return err
 	}
 
-	encryptedData, err := s.encrypt.Encrypt(data, s.manifest.Recipients)
+	encryptedData, err := s.encrypt(data)
 	if err != nil {
-		return errors.Wrap(err, "failed to encrypt data")
+		return err
 	}
 
 	var secret Secret
@@ -166,13 +166,13 @@ func (s *store) get(ctx context.Context, path string, key maybe.Maybe[string]) (
 		return nil, errors.New("no available identities found")
 	}
 
-	secretsData := secret.get(key)
+	secretsData := secret.getAll(key)
 	if len(secretsData) == 0 {
 		return nil, nil
 	}
 
 	return slices.MapErr(secretsData, func(secret SecretData) (SecretData, error) {
-		decryptedData, err2 := s.encrypt.Decrypt(secret.Payload, availableIdentities)
+		decryptedData, err2 := s.decrypt(ctx, secret.Payload)
 		if err2 != nil {
 			return SecretData{}, err2
 		}
@@ -281,12 +281,29 @@ func (s *store) rollback(ctx context.Context) error {
 	return s.storage.Rollback(ctx)
 }
 
-func (s *store) assertPacked() error {
-	if !s.manifest.Unpacked {
-		return nil
+func (s *store) encrypt(data []byte) ([]byte, error) {
+	encryptedData, err := s.encryption.Encrypt(data, s.manifest.Recipients)
+	return encryptedData, errors.Wrap(err, "failed to encrypt data")
+}
+
+func (s *store) decrypt(ctx context.Context, data []byte) ([]byte, error) {
+	var availableIdentities []encryption.Identity
+	for _, recipient := range s.manifest.Recipients {
+		i, err2 := s.identityProvider.IdentityByRecipient(ctx, recipient)
+		if err2 != nil {
+			return nil, errors.Wrap(err2, "failed to get identity")
+		}
+
+		if maybe.Valid(i) {
+			availableIdentities = append(availableIdentities, maybe.Just(i))
+		}
 	}
 
-	return errors.New("store is unpacked")
+	if len(availableIdentities) == 0 {
+		return nil, errors.New("no available identities found")
+	}
+
+	return s.encryption.Decrypt(data, availableIdentities)
 }
 
 // checks that path is not store internal object

@@ -2,6 +2,8 @@ package storage
 
 import (
 	"context"
+	"github.com/go-git/go-git/v5/plumbing/object"
+	"io"
 	"os"
 	"path"
 
@@ -169,6 +171,34 @@ func (storage *gitStorage) Get(_ context.Context, p string) (maybe.Maybe[[]byte]
 	return maybe.NewJust(data), nil
 }
 
+func (storage *gitStorage) GetLatest(_ context.Context, p string) (maybe.Maybe[[]byte], error) {
+	if !relativePathForStorage(p) {
+		return maybe.NewNone[[]byte](), errors.Errorf("path to secret is not local: %s", p)
+	}
+
+	commit, err := storage.getLastCommit(maybe.NewJust(p))
+	if err != nil {
+		return maybe.Maybe[[]byte]{}, err
+	}
+
+	// new file or no commits in repo
+	if commit == nil {
+		return maybe.Maybe[[]byte]{}, nil
+	}
+
+	file, err := commit.File(p)
+	if err != nil {
+		return maybe.Maybe[[]byte]{}, errors.Wrap(err, "failed to get file from commit")
+	}
+
+	content, err := file.Contents()
+	if err != nil {
+		return maybe.Maybe[[]byte]{}, errors.Wrap(err, "failed to get file content from commit")
+	}
+
+	return maybe.NewJust([]byte(content)), nil
+}
+
 func (storage *gitStorage) List(_ context.Context, p string) ([]appstorage.Entry, error) {
 	fixedPath := storage.repoDir
 	if p != "" {
@@ -307,4 +337,30 @@ func (storage *gitStorage) listEntriesRecursively(p string) ([]appstorage.Entry,
 	}
 
 	return entries, nil
+}
+
+func (storage *gitStorage) getLastCommit(p maybe.Maybe[string]) (*object.Commit, error) {
+	iter, err := storage.repo.Log(&git.LogOptions{
+		Order: git.LogOrderCommitterTime,
+		PathFilter: func(s string) bool {
+			if !maybe.Valid(p) {
+				return true
+			}
+			return s == maybe.Just(p)
+		},
+	})
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get last commit with associated file %s", p)
+	}
+
+	next, err := iter.Next()
+	if err != nil {
+		if errors.Is(err, io.EOF) {
+			return nil, nil
+		}
+		return nil, errors.Wrap(err, "failed to iterate commits")
+	}
+
+	iter.Close()
+	return next, nil
 }

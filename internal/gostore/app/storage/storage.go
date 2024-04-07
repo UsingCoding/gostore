@@ -19,6 +19,8 @@ type Storage interface {
 
 	// Get data from storage
 	Get(ctx context.Context, path string) (maybe.Maybe[[]byte], error)
+	// GetLatest reruns latest version of object
+	GetLatest(ctx context.Context, p string) (maybe.Maybe[[]byte], error)
 	// List storage entries
 	List(ctx context.Context, path string) ([]Entry, error)
 

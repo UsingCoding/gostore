@@ -287,7 +287,7 @@ func (service *storeService) loadStore(ctx context.Context, params CommonParams)
 	return &store{
 		manifest:         manifest,
 		storage:          s,
-		encrypt:          encryptService,
+		encryption:       encryptService,
 		secretSerializer: service.secretSerializer,
 		identityProvider: service.identityProvider,
 	}, nil
