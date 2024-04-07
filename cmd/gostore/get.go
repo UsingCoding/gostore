@@ -39,8 +39,6 @@ func get() *cli.Command {
 }
 
 func executeGet(ctx *cli.Context) error {
-	storePath := optStringFromCtx(ctx, "store")
-
 	if ctx.Args().Len() < 1 {
 		return errors.New("not enough arguments")
 	}
@@ -54,11 +52,9 @@ func executeGet(ctx *cli.Context) error {
 	service, _ := newStoreService(ctx)
 
 	secretsData, err := service.Get(ctx.Context, store.GetParams{
-		CommonParams: store.CommonParams{
-			StorePath: storePath,
-		},
-		Path: path,
-		Key:  key,
+		CommonParams: makeCommonParams(ctx),
+		Path:         path,
+		Key:          key,
 	})
 	if err != nil {
 		return err

@@ -48,8 +48,13 @@ func (s *service) Init(ctx context.Context, params store.InitParams) (store.Init
 		return store.InitRes{}, err
 	}
 
+	storeID, ok := maybe.JustValid(params.StoreID)
+	if !ok {
+		return store.InitRes{}, errors.New("storeID not passed")
+	}
+
 	storePath := maybe.MapNone(params.StorePath, func() string {
-		return path.Join(s.configService.GostoreLocation(ctx), params.ID)
+		return path.Join(s.configService.GostoreLocation(ctx), storeID)
 	})
 
 	params.StorePath = maybe.NewJust(storePath)
@@ -59,7 +64,7 @@ func (s *service) Init(ctx context.Context, params store.InitParams) (store.Init
 		return store.InitRes{}, err
 	}
 
-	err = s.configService.AddStore(ctx, config.StoreID(params.ID), initRes.StorePath)
+	err = s.configService.AddStore(ctx, config.StoreID(storeID), initRes.StorePath)
 	if err != nil {
 		return store.InitRes{}, err
 	}
@@ -212,9 +217,24 @@ func (s *service) Rollback(ctx context.Context, params store.CommonParams) error
 
 func (s *service) populateCommonParams(ctx context.Context, params store.CommonParams) (store.CommonParams, error) {
 	if !maybe.Valid(params.StorePath) {
-		storePath, err := s.configService.CurrentStorePath(ctx)
-		if err != nil {
-			return store.CommonParams{}, errors.Wrap(err, "failed to get current store")
+		var storePath maybe.Maybe[string]
+		if id, ok := maybe.JustValid(params.StoreID); ok {
+			storeByID, err := s.configService.StoreByID(ctx, config.StoreID(id))
+			if err != nil {
+				return store.CommonParams{}, err
+			}
+
+			foundStore, ok := maybe.JustValid(storeByID)
+			if !ok {
+				return store.CommonParams{}, errors.Errorf("store by id %s is not found", id)
+			}
+			storePath = maybe.NewJust(foundStore.Path)
+		} else {
+			var err error
+			storePath, err = s.configService.CurrentStorePath(ctx)
+			if err != nil {
+				return store.CommonParams{}, errors.Wrap(err, "failed to get current store")
+			}
 		}
 
 		params.StorePath = storePath

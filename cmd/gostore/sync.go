@@ -22,7 +22,9 @@ func executeSync(ctx *cli.Context) error {
 
 	err := service.Sync(
 		ctx.Context,
-		store.SyncParams{},
+		store.SyncParams{
+			CommonParams: makeCommonParams(ctx),
+		},
 	)
 	if err != nil {
 		return err

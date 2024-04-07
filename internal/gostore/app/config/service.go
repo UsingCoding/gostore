@@ -29,7 +29,9 @@ type Service interface {
 	CurrentStoreID(ctx context.Context) (maybe.Maybe[StoreID], error)
 	CurrentStorePath(ctx context.Context) (maybe.Maybe[string], error)
 	GostoreLocation(ctx context.Context) string
+
 	ListStores(ctx context.Context) ([]StoreView, error)
+	StoreByID(ctx context.Context, storeID StoreID) (maybe.Maybe[StoreView], error)
 
 	AddIdentity(ctx context.Context, identities ...encryption.Identity) error
 	AddStore(ctx context.Context, storeID StoreID, path string) error
@@ -146,6 +148,28 @@ func (s *service) ListStores(ctx context.Context) ([]StoreView, error) {
 			Path:    s.Path,
 			Current: maybe.Valid(config.Context) && maybe.Just(config.Context) == s.ID,
 		}
+	}), nil
+}
+
+func (s *service) StoreByID(ctx context.Context, storeID StoreID) (maybe.Maybe[StoreView], error) {
+	config, err := s.storage.Load(ctx)
+	if err != nil {
+		return maybe.Maybe[StoreView]{}, err
+	}
+
+	i := slices.IndexFunc(config.Stores, func(s Store) bool {
+		return s.ID == storeID
+	})
+	if i == -1 {
+		return maybe.Maybe[StoreView]{}, err
+	}
+
+	foundStore := config.Stores[i]
+
+	return maybe.NewJust(StoreView{
+		ID:      foundStore.ID,
+		Path:    foundStore.Path,
+		Current: maybe.Valid(config.Context) && maybe.Just(config.Context) == foundStore.ID,
 	}), nil
 }
 

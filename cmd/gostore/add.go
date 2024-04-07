@@ -20,8 +20,6 @@ func add() *cli.Command {
 }
 
 func executeAdd(ctx *cli.Context) error {
-	storePath := optStringFromCtx(ctx, "store")
-
 	if ctx.Args().Len() < 1 {
 		return errors.New("not enough arguments")
 	}
@@ -44,11 +42,9 @@ func executeAdd(ctx *cli.Context) error {
 	service, _ := newStoreService(ctx)
 
 	return service.Add(ctx.Context, store.AddParams{
-		CommonParams: store.CommonParams{
-			StorePath: storePath,
-		},
-		Path: path,
-		Key:  key,
-		Data: data,
+		CommonParams: makeCommonParams(ctx),
+		Path:         path,
+		Key:          key,
+		Data:         data,
 	})
 }

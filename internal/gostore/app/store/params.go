@@ -8,12 +8,12 @@ import (
 
 type CommonParams struct {
 	StorePath maybe.Maybe[string]
+	StoreID   maybe.Maybe[string]
 }
 
 type InitParams struct {
 	CommonParams
 
-	ID string
 	// if there is no key passed new one will be created
 	Recipients []encryption.Recipient
 

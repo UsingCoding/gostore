@@ -38,8 +38,6 @@ func move() *cli.Command {
 }
 
 func executeMove(ctx *cli.Context) error {
-	storePath := optStringFromCtx(ctx, "store")
-
 	if ctx.Args().Len() < 2 {
 		return errors.New("expected exactly 2 arguments")
 	}
@@ -50,10 +48,8 @@ func executeMove(ctx *cli.Context) error {
 	service, _ := newStoreService(ctx)
 
 	return service.Move(ctx.Context, store.MoveParams{
-		CommonParams: store.CommonParams{
-			StorePath: storePath,
-		},
-		Src: src,
-		Dst: dst,
+		CommonParams: makeCommonParams(ctx),
+		Src:          src,
+		Dst:          dst,
 	})
 }

@@ -38,8 +38,6 @@ func copyCmd() *cli.Command {
 }
 
 func executeCopy(ctx *cli.Context) error {
-	storePath := optStringFromCtx(ctx, "store")
-
 	if ctx.Args().Len() < 2 {
 		return errors.New("expected exactly 2 arguments")
 	}
@@ -50,10 +48,8 @@ func executeCopy(ctx *cli.Context) error {
 	service, _ := newStoreService(ctx)
 
 	return service.Copy(ctx.Context, store.CopyParams{
-		CommonParams: store.CommonParams{
-			StorePath: storePath,
-		},
-		Src: src,
-		Dst: dst,
+		CommonParams: makeCommonParams(ctx),
+		Src:          src,
+		Dst:          dst,
 	})
 }

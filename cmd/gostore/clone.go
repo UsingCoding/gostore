@@ -41,17 +41,14 @@ func executeClone(ctx *cli.Context) error {
 	address := ctx.Args().Get(0)
 
 	id := ctx.String("id")
-	storePath := optStringFromCtx(ctx, "store-path")
 	storageType := ctx.String("storage-type")
 
 	service, _ := newStoreService(ctx)
 
 	return service.Clone(ctx.Context, store.CloneParams{
-		CommonParams: store.CommonParams{
-			StorePath: storePath,
-		},
-		ID:          id,
-		StorageType: storage.Type(storageType),
-		Remote:      address,
+		CommonParams: makeCommonParams(ctx),
+		ID:           id,
+		StorageType:  storage.Type(storageType),
+		Remote:       address,
 	})
 }

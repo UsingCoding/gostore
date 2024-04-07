@@ -38,8 +38,6 @@ func remove() *cli.Command {
 }
 
 func executeRemove(ctx *cli.Context) error {
-	storePath := optStringFromCtx(ctx, "store")
-
 	if ctx.Args().Len() < 1 {
 		return errors.New("not enough arguments")
 	}
@@ -53,10 +51,8 @@ func executeRemove(ctx *cli.Context) error {
 	service, _ := newStoreService(ctx)
 
 	return service.Remove(ctx.Context, store.RemoveParams{
-		CommonParams: store.CommonParams{
-			StorePath: storePath,
-		},
-		Path: path,
-		Key:  key,
+		CommonParams: makeCommonParams(ctx),
+		Path:         path,
+		Key:          key,
 	})
 }

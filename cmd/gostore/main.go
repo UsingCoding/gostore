@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"github.com/UsingCoding/gostore/internal/gostore/app/store"
 	stdlog "log"
 	"os"
 	"os/signal"
@@ -83,6 +84,13 @@ func runApp(ctx context.Context, args []string) error {
 				},
 				Value: path.Join(homeDir, ".gostore"),
 			},
+			&cli.StringFlag{
+				Name:  "store-id",
+				Usage: "Store ID",
+				EnvVars: []string{
+					"GOSTORE_STORE_ID",
+				},
+			},
 		},
 	}
 
@@ -125,6 +133,13 @@ func newStoreService(ctx *cli.Context) (service.Service, config.Service) {
 		infrastore.NewManifestSerializer(),
 		infrastore.NewSecretSerializer(),
 	), configService
+}
+
+func makeCommonParams(ctx *cli.Context) store.CommonParams {
+	return store.CommonParams{
+		StorePath: maybe.Maybe[string]{},
+		StoreID:   optStringFromCtx(ctx, "store-id"),
+	}
 }
 
 func optFromCtx[T any](ctx *cli.Context, key string) maybe.Maybe[T] {

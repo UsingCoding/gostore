@@ -20,8 +20,6 @@ func list() *cli.Command {
 }
 
 func executeList(ctx *cli.Context) error {
-	storePath := optStringFromCtx(ctx, "store")
-
 	var path string
 	if ctx.Args().Len() > 0 {
 		path = ctx.Args().Get(0)
@@ -30,10 +28,8 @@ func executeList(ctx *cli.Context) error {
 	service, configService := newStoreService(ctx)
 
 	entries, err := service.List(ctx.Context, store.ListParams{
-		CommonParams: store.CommonParams{
-			StorePath: storePath,
-		},
-		Path: path,
+		CommonParams: makeCommonParams(ctx),
+		Path:         path,
 	})
 	if err != nil {
 		return err

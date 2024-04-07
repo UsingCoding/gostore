@@ -52,8 +52,8 @@ func executeInit(ctx *cli.Context) error {
 	res, err := service.Init(ctx.Context, store.InitParams{
 		CommonParams: store.CommonParams{
 			StorePath: storePath,
+			StoreID:   maybe.NewJust(storeID),
 		},
-		ID: storeID,
 		Recipients: slices.Map(recipients, func(r string) encryption.Recipient {
 			return encryption.Recipient(r)
 		}),
