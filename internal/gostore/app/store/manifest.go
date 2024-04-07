@@ -13,6 +13,7 @@ type Manifest struct {
 	StorageType storage.Type
 	Encryption  encryption.Encryption
 	Recipients  []encryption.Recipient
+	Unpacked    bool
 }
 
 type ManifestSerializer interface {

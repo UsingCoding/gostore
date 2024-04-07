@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	stderrors "errors"
 
 	"github.com/pkg/errors"
 
@@ -26,7 +27,11 @@ type Service interface {
 
 	Remove(ctx context.Context, params RemoveParams) error
 
+	Unpack(ctx context.Context, params CommonParams) error
+	Pack(ctx context.Context, params CommonParams) error
+
 	Sync(ctx context.Context, params SyncParams) error
+	Rollback(ctx context.Context, params CommonParams) error
 }
 
 func NewStoreService(
@@ -201,6 +206,36 @@ func (service *storeService) Remove(ctx context.Context, params RemoveParams) er
 	return s.remove(ctx, params.Path, params.Key)
 }
 
+func (service *storeService) Unpack(ctx context.Context, params CommonParams) error {
+	s, err := service.loadStore(ctx, params)
+	if err != nil {
+		return errors.Wrap(err, "failed to load store")
+	}
+	defer s.close()
+
+	err = s.unpack(ctx)
+	if err == nil {
+		s.manifest.Unpacked = true
+		err = service.writeManifest(ctx, s.manifest, s.storage)
+	}
+	return err
+}
+
+func (service *storeService) Pack(ctx context.Context, params CommonParams) error {
+	s, err := service.loadStore(ctx, params)
+	if err != nil {
+		return errors.Wrap(err, "failed to load store")
+	}
+	defer s.close()
+
+	err = s.pack(ctx)
+	if err == nil {
+		s.manifest.Unpacked = false
+		err = stderrors.Join(err, service.writeManifest(ctx, s.manifest, s.storage))
+	}
+	return err
+}
+
 func (service *storeService) Sync(ctx context.Context, params SyncParams) error {
 	s, err := service.loadStore(ctx, params.CommonParams)
 	if err != nil {
@@ -208,6 +243,15 @@ func (service *storeService) Sync(ctx context.Context, params SyncParams) error 
 	}
 
 	return s.sync(ctx)
+}
+
+func (service *storeService) Rollback(ctx context.Context, params CommonParams) error {
+	s, err := service.loadStore(ctx, params)
+	if err != nil {
+		return errors.Wrap(err, "failed to load store")
+	}
+
+	return s.rollback(ctx)
 }
 
 func (service *storeService) loadStore(ctx context.Context, params CommonParams) (*store, error) {
@@ -247,6 +291,16 @@ func (service *storeService) loadStore(ctx context.Context, params CommonParams)
 		secretSerializer: service.secretSerializer,
 		identityProvider: service.identityProvider,
 	}, nil
+}
+
+func (service *storeService) writeManifest(ctx context.Context, m Manifest, s storage.Storage) error {
+	data, err := service.manifestSerializer.Serialize(m)
+	if err != nil {
+		return errors.Wrapf(err, "failed to serialize store manifest")
+	}
+
+	err = s.Store(ctx, ManifestPath, data)
+	return errors.Wrapf(err, "failed to store manifest")
 }
 
 func (service *storeService) storeLocation(params CommonParams) (string, error) {

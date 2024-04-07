@@ -36,7 +36,12 @@ func (s *store) add(
 	key maybe.Maybe[string],
 	data []byte,
 ) error {
-	err := allowedPaths(path)
+	err := s.assertPacked()
+	if err != nil {
+		return err
+	}
+
+	err = allowedPaths(path)
 	if err != nil {
 		return err
 	}
@@ -79,7 +84,12 @@ func (s *store) add(
 }
 
 func (s *store) copy(ctx context.Context, src, dst string) error {
-	err := allowedPaths(src, dst)
+	err := s.assertPacked()
+	if err != nil {
+		return err
+	}
+
+	err = allowedPaths(src, dst)
 	if err != nil {
 		return err
 	}
@@ -95,7 +105,12 @@ func (s *store) copy(ctx context.Context, src, dst string) error {
 }
 
 func (s *store) move(ctx context.Context, src, dst string) error {
-	err := allowedPaths(src, dst)
+	err := s.assertPacked()
+	if err != nil {
+		return err
+	}
+
+	err = allowedPaths(src, dst)
 	if err != nil {
 		return err
 	}
@@ -111,7 +126,12 @@ func (s *store) move(ctx context.Context, src, dst string) error {
 }
 
 func (s *store) get(ctx context.Context, path string, key maybe.Maybe[string]) ([]SecretData, error) {
-	err := allowedPaths(path)
+	err := s.assertPacked()
+	if err != nil {
+		return nil, err
+	}
+
+	err = allowedPaths(path)
 	if err != nil {
 		return nil, err
 	}
@@ -176,7 +196,12 @@ func (s *store) list(ctx context.Context, path string) ([]storage.Entry, error) 
 }
 
 func (s *store) remove(ctx context.Context, path string, key maybe.Maybe[string]) error {
-	err := allowedPaths(path)
+	err := s.assertPacked()
+	if err != nil {
+		return err
+	}
+
+	err = allowedPaths(path)
 	if err != nil {
 		return err
 	}
@@ -231,7 +256,12 @@ func (s *store) remove(ctx context.Context, path string, key maybe.Maybe[string]
 }
 
 func (s *store) sync(ctx context.Context) error {
-	err := s.storage.Pull(ctx)
+	err := s.assertPacked()
+	if err != nil {
+		return err
+	}
+
+	err = s.storage.Pull(ctx)
 	if err != nil {
 		return errors.Wrap(err, "failed to pull storage")
 	}
@@ -249,6 +279,14 @@ func (s *store) close() error {
 
 func (s *store) rollback(ctx context.Context) error {
 	return s.storage.Rollback(ctx)
+}
+
+func (s *store) assertPacked() error {
+	if !s.manifest.Unpacked {
+		return nil
+	}
+
+	return errors.New("store is unpacked")
 }
 
 // checks that path is not store internal object

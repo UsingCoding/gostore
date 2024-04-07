@@ -26,6 +26,7 @@ func (serializer manifestSerializer) Serialize(m store.Manifest) ([]byte, error)
 		Recipients: slices.Map(m.Recipients, func(r encryption.Recipient) string {
 			return string(r)
 		}),
+		Unpacked: m.Unpacked,
 	})
 	return data, errors.Wrap(err, "failed to serialize manifest")
 }
@@ -47,6 +48,7 @@ func (serializer manifestSerializer) Deserialize(data []byte) (store.Manifest, e
 		Recipients: slices.Map(m.Recipients, func(r string) encryption.Recipient {
 			return encryption.Recipient(r)
 		}),
+		Unpacked: m.Unpacked,
 	}, nil
 }
 
@@ -55,4 +57,5 @@ type manifest struct {
 	StorageType string   `json:"storageType"`
 	Encryption  string   `json:"encryption"`
 	Recipients  []string `json:"recipients"`
+	Unpacked    bool     `json:"unpacked,omitempty"`
 }

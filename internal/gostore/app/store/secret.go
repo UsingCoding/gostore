@@ -78,7 +78,16 @@ type SecretData struct {
 	Default bool // means that secret data stored in default field
 }
 
+// RawSecret - raw secret one of
+type RawSecret struct {
+	Data    maybe.Maybe[[]byte]
+	Payload maybe.Maybe[map[string][]byte]
+}
+
 type SecretSerializer interface {
 	Serialize(secret Secret) ([]byte, error)
 	Deserialize([]byte) (Secret, error)
+
+	RawSerialize(secret RawSecret) ([]byte, error)
+	RawDeserialize(data []byte) (RawSecret, error)
 }

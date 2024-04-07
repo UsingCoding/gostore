@@ -252,6 +252,16 @@ func (storage *gitStorage) Commit(_ context.Context, msg string) error {
 		return errors.WithStack(err)
 	}
 
+	status, err := worktree.Status()
+	if err != nil {
+		return errors.Wrap(err, "failed to get worktree status")
+	}
+
+	if status.IsClean() {
+		// nothing changed
+		return nil
+	}
+
 	_, err = worktree.Commit(msg, &git.CommitOptions{})
 	return errors.Wrap(err, "failed to commit changes")
 }

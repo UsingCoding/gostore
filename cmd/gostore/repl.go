@@ -84,8 +84,7 @@ func repl(ctx *cli.Context) error {
 }
 
 func completer(c *cli.Context, s service.Service) (readline.AutoCompleter, error) {
-	var recursivelyCollectArgs func(cmd *cli.Command, cmdPath string, args *[]readline.PrefixCompleterInterface) error
-	recursivelyCollectArgs = func(cmd *cli.Command, cmdPath string, args *[]readline.PrefixCompleterInterface) error {
+	recursivelyCollectArgs := func(cmd *cli.Command, args *[]readline.PrefixCompleterInterface) error {
 		if cmd.Hidden {
 			return nil
 		}
@@ -113,7 +112,7 @@ func completer(c *cli.Context, s service.Service) (readline.AutoCompleter, error
 
 	var args []readline.PrefixCompleterInterface
 	for _, command := range c.App.Commands {
-		err := recursivelyCollectArgs(command, command.Name, &args)
+		err := recursivelyCollectArgs(command, &args)
 		if err != nil {
 			return nil, err
 		}

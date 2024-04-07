@@ -168,6 +168,26 @@ func (s *service) Remove(ctx context.Context, params store.RemoveParams) error {
 		Remove(ctx, params)
 }
 
+func (s *service) Unpack(ctx context.Context, params store.CommonParams) error {
+	p, err := s.populateCommonParams(ctx, params)
+	if err != nil {
+		return err
+	}
+
+	return s.makeStoreService().
+		Unpack(ctx, p)
+}
+
+func (s *service) Pack(ctx context.Context, params store.CommonParams) error {
+	p, err := s.populateCommonParams(ctx, params)
+	if err != nil {
+		return err
+	}
+
+	return s.makeStoreService().
+		Pack(ctx, p)
+}
+
 func (s *service) Sync(ctx context.Context, params store.SyncParams) error {
 	p, err := s.populateCommonParams(ctx, params.CommonParams)
 	if err != nil {
@@ -178,6 +198,16 @@ func (s *service) Sync(ctx context.Context, params store.SyncParams) error {
 
 	return s.makeStoreService().
 		Sync(ctx, params)
+}
+
+func (s *service) Rollback(ctx context.Context, params store.CommonParams) error {
+	p, err := s.populateCommonParams(ctx, params)
+	if err != nil {
+		return err
+	}
+
+	return s.makeStoreService().
+		Rollback(ctx, p)
 }
 
 func (s *service) populateCommonParams(ctx context.Context, params store.CommonParams) (store.CommonParams, error) {
