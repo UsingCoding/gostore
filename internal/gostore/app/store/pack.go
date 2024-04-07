@@ -82,8 +82,8 @@ func (s *store) pack(ctx context.Context) error {
 		}
 	}
 
-	// packing store back may introduce changes in file, mark changedAdded = true to store changes
-	s.changedAdded = true
+	// packing store back may introduce changes in file
+	s.operations.add(packOperation())
 
 	return nil
 }

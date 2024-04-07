@@ -27,7 +27,7 @@ type store struct {
 
 	secretSerializer SecretSerializer
 
-	changedAdded bool
+	operations operations
 }
 
 func (s *store) add(
@@ -78,7 +78,7 @@ func (s *store) add(
 		return err
 	}
 
-	s.changedAdded = true
+	s.operations.add(addOperation(path, key))
 
 	return nil
 }
@@ -99,7 +99,7 @@ func (s *store) copy(ctx context.Context, src, dst string) error {
 		return err
 	}
 
-	s.changedAdded = true
+	s.operations.add(copyOperation(src, dst))
 
 	return nil
 }
@@ -120,7 +120,7 @@ func (s *store) move(ctx context.Context, src, dst string) error {
 		return err
 	}
 
-	s.changedAdded = true
+	s.operations.add(moveOperation(src, dst))
 
 	return nil
 }
@@ -211,7 +211,7 @@ func (s *store) remove(ctx context.Context, path string, key maybe.Maybe[string]
 		if err != nil {
 			return err
 		}
-		s.changedAdded = true
+		s.operations.add(removeOperation(path, key))
 		return nil
 	}
 
@@ -237,7 +237,8 @@ func (s *store) remove(ctx context.Context, path string, key maybe.Maybe[string]
 		if err != nil {
 			return err
 		}
-		s.changedAdded = true
+		s.operations.add(removeEmptyOperation(path))
+		return nil
 	}
 
 	secretData, err := s.secretSerializer.Serialize(secret)
@@ -250,7 +251,7 @@ func (s *store) remove(ctx context.Context, path string, key maybe.Maybe[string]
 		return err
 	}
 
-	s.changedAdded = true
+	s.operations.add(removeOperation(path, key))
 
 	return nil
 }
@@ -271,10 +272,10 @@ func (s *store) sync(ctx context.Context) error {
 }
 
 func (s *store) close() error {
-	if !s.changedAdded {
+	if s.operations.len() == 0 {
 		return nil
 	}
-	return s.storage.Commit(context.Background(), "Changes committed")
+	return s.storage.Commit(context.Background(), s.operations.String())
 }
 
 func (s *store) rollback(ctx context.Context) error {
