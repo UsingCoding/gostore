@@ -147,7 +147,7 @@ func (s *store) get(ctx context.Context, path string, key maybe.Maybe[string]) (
 
 	secret, err := s.secretSerializer.Deserialize(maybe.Just(secretBytes))
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "failed to deserialize secret at %s", path)
 	}
 
 	var availableIdentities []encryption.Identity

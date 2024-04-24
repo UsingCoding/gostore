@@ -2,14 +2,17 @@ package main
 
 import (
 	"context"
+	"encoding/json"
+	"github.com/UsingCoding/gostore/internal/common/errors"
 	"github.com/UsingCoding/gostore/internal/gostore/app/store"
+	"github.com/UsingCoding/gostore/internal/gostore/app/verbose"
+	"github.com/UsingCoding/gostore/internal/gostore/infrastructure/consoleoutput"
+	"github.com/urfave/cli/v2"
 	stdlog "log"
 	"os"
 	"os/signal"
 	"path"
 	"syscall"
-
-	"github.com/urfave/cli/v2"
 
 	contextcmd "github.com/UsingCoding/gostore/cmd/gostore/context"
 	identitycmd "github.com/UsingCoding/gostore/cmd/gostore/identity"
@@ -51,12 +54,15 @@ func runApp(ctx context.Context, args []string) error {
 	}
 
 	app := &cli.App{
-		Name:                 appID,
-		Version:              version,
+		Name:    appID,
+		Version: version,
+		// do not use built-in version flag
+		HideVersion:          true,
 		Usage:                "Secrets store manager",
 		EnableBashCompletion: true,
 		Action:               repl,
 		Commands: []*cli.Command{
+			versionCmd(),
 			initCmd(),
 			clone(),
 			add(),
@@ -91,6 +97,32 @@ func runApp(ctx context.Context, args []string) error {
 					"GOSTORE_STORE_ID",
 				},
 			},
+			&cli.UintFlag{
+				Name:    "verbose",
+				Usage:   "Verbose mode: 1, 2, 3",
+				Aliases: []string{"v"},
+				Action: func(c *cli.Context, i uint) error {
+					return verbose.Valid(i)
+				},
+			},
+		},
+		ExitErrHandler: func(c *cli.Context, err error) {
+			defer func() {
+				cli.HandleExitCoder(err)
+			}()
+
+			v := verbose.Ensure(c.Uint("verbose"))
+
+			if v < verbose.Level1 {
+				return
+			}
+
+			traces := errors.StackTraces(err)
+			if len(traces) == 0 {
+				return
+			}
+
+			printStackTraces(traces)
 		},
 	}
 
@@ -163,4 +195,19 @@ func optStringFromCtx(ctx *cli.Context, key string) maybe.Maybe[string] {
 	}
 
 	return maybe.NewJust(v)
+}
+
+func printStackTraces(traces []errors.Trace) {
+	o := consoleoutput.
+		New(os.Stdout, consoleoutput.WithNewline(true))
+
+	for i, trace := range traces {
+		traceStr, err := json.Marshal(trace)
+		if err != nil {
+			return
+		}
+
+		o.Printf("Trace: %d", i)
+		o.Printf(string(traceStr))
+	}
 }
