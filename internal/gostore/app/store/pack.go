@@ -82,7 +82,7 @@ func (s *store) pack(ctx context.Context) error {
 		}
 	}
 
-	// packing store back may introduce changes in file
+	// packing store back may introduce changes in objects
 	s.operations.add(packOperation())
 
 	return nil

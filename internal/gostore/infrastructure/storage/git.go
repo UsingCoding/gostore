@@ -292,7 +292,9 @@ func (storage *gitStorage) Commit(_ context.Context, msg string) error {
 		return nil
 	}
 
-	_, err = worktree.Commit(msg, &git.CommitOptions{})
+	_, err = worktree.Commit(msg, &git.CommitOptions{
+		All: true,
+	})
 	return errors.Wrap(err, "failed to commit changes")
 }
 
