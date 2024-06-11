@@ -182,17 +182,17 @@ func (s *store) get(ctx context.Context, path string, key maybe.Maybe[string]) (
 	})
 }
 
-func (s *store) list(ctx context.Context, path string) ([]storage.Entry, error) {
-	entries, err := s.storage.List(ctx, path)
+func (s *store) list(ctx context.Context, path string) (storage.Tree, error) {
+	tree, err := s.storage.List(ctx, path)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to extreact entries from storage")
+		return nil, errors.Wrap(err, "failed to extreact tree from storage")
 	}
 
-	entries = slices.Filter(entries, func(entry storage.Entry) bool {
+	tree = slices.Filter(tree, func(entry storage.Entry) bool {
 		return !commonstrings.HasPrefix(entry.Name, reservedPaths)
 	})
 
-	return entries, nil
+	return tree, nil
 }
 
 func (s *store) remove(ctx context.Context, path string, key maybe.Maybe[string]) error {

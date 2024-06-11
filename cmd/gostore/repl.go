@@ -1,19 +1,16 @@
 package main
 
 import (
-	"io"
-	"os"
-	"path"
-
 	"github.com/UsingCoding/fpgo/pkg/slices"
 	"github.com/anmitsu/go-shlex"
 	"github.com/ergochat/readline"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
+	"io"
+	"os"
 
 	"github.com/UsingCoding/gostore/data"
 	"github.com/UsingCoding/gostore/internal/gostore/app/service"
-	"github.com/UsingCoding/gostore/internal/gostore/app/storage"
 	"github.com/UsingCoding/gostore/internal/gostore/app/store"
 	"github.com/UsingCoding/gostore/internal/gostore/infrastructure/consoleoutput"
 )
@@ -134,37 +131,15 @@ func completionItemForCmd(c *cli.Context, cmd string, s service.Service) ([]read
 }
 
 func storeEntriesPathsForCompletion(c *cli.Context, s service.Service) ([]readline.PrefixCompleterInterface, error) {
-	entries, err := s.List(c.Context, store.ListParams{})
+	tree, err := s.List(c.Context, store.ListParams{})
 	if err != nil {
 		return nil, err
 	}
 
-	return slices.Map(inlinePaths(entries), func(p string) readline.PrefixCompleterInterface {
-		return readline.PcItem(p)
-	}), nil
-}
-
-func inlinePaths(entries []storage.Entry) []string {
-	var recursiveInlinePath func(e storage.Entry) []string
-	recursiveInlinePath = func(e storage.Entry) []string {
-		if len(e.Children) == 0 {
-			return []string{e.Name}
-		}
-
-		var res []string
-		for _, child := range e.Children {
-			childsPath := recursiveInlinePath(child)
-			res = append(res, slices.Map(childsPath, func(p string) string {
-				return path.Join(e.Name, p)
-			})...)
-		}
-
-		return res
-	}
-
-	var res []string
-	for _, entry := range entries {
-		res = append(res, recursiveInlinePath(entry)...)
-	}
-	return res
+	return slices.Map(
+		tree.Inline().Keys(),
+		func(p string) readline.PrefixCompleterInterface {
+			return readline.PcItem(p)
+		},
+	), nil
 }

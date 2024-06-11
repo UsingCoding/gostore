@@ -8,7 +8,6 @@ import (
 
 	"github.com/UsingCoding/gostore/internal/common/maybe"
 	appedit "github.com/UsingCoding/gostore/internal/gostore/app/edit"
-	"github.com/UsingCoding/gostore/internal/gostore/app/store"
 	"github.com/UsingCoding/gostore/internal/gostore/infrastructure/consoleoutput"
 	"github.com/UsingCoding/gostore/internal/gostore/infrastructure/editor"
 )
@@ -24,17 +23,7 @@ func edit() *cli.Command {
 				return
 			}
 
-			service, _ := newStoreService(ctx)
-
-			entries, err := service.List(ctx.Context, store.ListParams{})
-			if err != nil {
-				return
-			}
-
-			o := consoleoutput.New(os.Stdout, consoleoutput.WithNewline(true))
-			for _, p := range inlinePaths(entries) {
-				o.Printf(p)
-			}
+			printTree(ctx)
 		},
 	}
 }

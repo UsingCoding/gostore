@@ -9,7 +9,6 @@ import (
 
 	"github.com/UsingCoding/gostore/internal/common/maybe"
 	"github.com/UsingCoding/gostore/internal/gostore/app/store"
-	"github.com/UsingCoding/gostore/internal/gostore/infrastructure/consoleoutput"
 )
 
 func get() *cli.Command {
@@ -23,17 +22,7 @@ func get() *cli.Command {
 				return
 			}
 
-			service, _ := newStoreService(ctx)
-
-			entries, err := service.List(ctx.Context, store.ListParams{})
-			if err != nil {
-				return
-			}
-
-			o := consoleoutput.New(os.Stdout, consoleoutput.WithNewline(true))
-			for _, p := range inlinePaths(entries) {
-				o.Printf(p)
-			}
+			printTree(ctx)
 		},
 	}
 }

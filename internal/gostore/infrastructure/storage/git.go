@@ -199,7 +199,7 @@ func (storage *gitStorage) GetLatest(_ context.Context, p string) (maybe.Maybe[[
 	return maybe.NewJust([]byte(content)), nil
 }
 
-func (storage *gitStorage) List(_ context.Context, p string) ([]appstorage.Entry, error) {
+func (storage *gitStorage) List(_ context.Context, p string) (appstorage.Tree, error) {
 	fixedPath := storage.repoDir
 	if p != "" {
 		if !relativePathForStorage(p) {
@@ -325,7 +325,9 @@ func (storage *gitStorage) listEntriesRecursively(p string) ([]appstorage.Entry,
 			continue
 		}
 
+		entryType := appstorage.FileEntryType
 		if entry.IsDir() {
+			entryType = appstorage.CatalogEntryType
 			children, err = storage.listEntriesRecursively(path.Join(p, entry.Name()))
 			if err != nil {
 				return nil, err
@@ -334,6 +336,7 @@ func (storage *gitStorage) listEntriesRecursively(p string) ([]appstorage.Entry,
 
 		entries = append(entries, appstorage.Entry{
 			Name:     entry.Name(),
+			Type:     entryType,
 			Children: children,
 		})
 	}

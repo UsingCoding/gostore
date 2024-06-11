@@ -1,13 +1,10 @@
 package main
 
 import (
-	"os"
-
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
 
 	"github.com/UsingCoding/gostore/internal/gostore/app/store"
-	"github.com/UsingCoding/gostore/internal/gostore/infrastructure/consoleoutput"
 )
 
 func copyCmd() *cli.Command {
@@ -22,17 +19,7 @@ func copyCmd() *cli.Command {
 				return
 			}
 
-			service, _ := newStoreService(ctx)
-
-			entries, err := service.List(ctx.Context, store.ListParams{})
-			if err != nil {
-				return
-			}
-
-			o := consoleoutput.New(os.Stdout, consoleoutput.WithNewline(true))
-			for _, p := range inlinePaths(entries) {
-				o.Printf(p)
-			}
+			printTree(ctx)
 		},
 	}
 }

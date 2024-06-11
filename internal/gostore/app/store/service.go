@@ -23,7 +23,7 @@ type Service interface {
 	Move(ctx context.Context, params MoveParams) error
 
 	Get(ctx context.Context, params GetParams) ([]SecretData, error)
-	List(ctx context.Context, params ListParams) ([]storage.Entry, error)
+	List(ctx context.Context, params ListParams) (storage.Tree, error)
 
 	Remove(ctx context.Context, params RemoveParams) error
 
@@ -186,7 +186,7 @@ func (service *storeService) Get(ctx context.Context, params GetParams) ([]Secre
 	return s.get(ctx, params.Path, params.Key)
 }
 
-func (service *storeService) List(ctx context.Context, params ListParams) ([]storage.Entry, error) {
+func (service *storeService) List(ctx context.Context, params ListParams) (storage.Tree, error) {
 	s, err := service.loadStore(ctx, params.CommonParams)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to load store")

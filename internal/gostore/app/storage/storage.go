@@ -22,7 +22,7 @@ type Storage interface {
 	// GetLatest reruns latest version of object
 	GetLatest(ctx context.Context, p string) (maybe.Maybe[[]byte], error)
 	// List storage entries
-	List(ctx context.Context, path string) ([]Entry, error)
+	List(ctx context.Context, path string) (Tree, error)
 
 	// AddRemote to storage. remoteAddr depends on storage implementation
 	AddRemote(ctx context.Context, remoteName string, remoteAddr string) error
@@ -37,9 +37,4 @@ type Storage interface {
 	Commit(ctx context.Context, msg string) error
 	// Rollback all uncommitted changes
 	Rollback(ctx context.Context) error
-}
-
-type Entry struct {
-	Name     string
-	Children []Entry
 }

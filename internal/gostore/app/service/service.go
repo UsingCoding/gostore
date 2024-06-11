@@ -149,7 +149,7 @@ func (s *service) Get(ctx context.Context, params store.GetParams) ([]store.Secr
 		Get(ctx, params)
 }
 
-func (s *service) List(ctx context.Context, params store.ListParams) ([]storage.Entry, error) {
+func (s *service) List(ctx context.Context, params store.ListParams) (storage.Tree, error) {
 	p, err := s.populateCommonParams(ctx, params.CommonParams)
 	if err != nil {
 		return nil, err

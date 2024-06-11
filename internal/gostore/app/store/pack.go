@@ -4,11 +4,8 @@ import (
 	"bytes"
 	"context"
 	stderrors "errors"
-	"github.com/UsingCoding/fpgo/pkg/slices"
 	"github.com/UsingCoding/gostore/internal/common/maybe"
-	"github.com/UsingCoding/gostore/internal/gostore/app/storage"
 	"github.com/pkg/errors"
-	"path"
 )
 
 func (s *store) unpack(ctx context.Context) (err error) {
@@ -27,12 +24,12 @@ func (s *store) unpack(ctx context.Context) (err error) {
 	}()
 
 	const root = ""
-	entries, err := s.list(ctx, root)
+	tree, err := s.list(ctx, root)
 	if err != nil {
 		return err
 	}
 
-	for _, entryPath := range inlinePaths(entries) {
+	for _, entryPath := range tree.Inline().Keys() {
 		secretData, err2 := s.get(ctx, entryPath, maybe.NewNone[string]())
 		if err2 != nil {
 			return err2
@@ -70,12 +67,12 @@ func (s *store) pack(ctx context.Context) error {
 	}
 
 	const root = ""
-	entries, err := s.list(ctx, root)
+	tree, err := s.list(ctx, root)
 	if err != nil {
 		return err
 	}
 
-	for _, entryPath := range inlinePaths(entries) {
+	for _, entryPath := range tree.Inline().Keys() {
 		err = s.packSecret(ctx, entryPath)
 		if err != nil {
 			return errors.Wrapf(err, "failed to pack secret %s", entryPath)
@@ -180,31 +177,6 @@ func (s *store) mergeWithLatest(ctx context.Context, secret Secret, latestData [
 	})
 
 	return secret, err
-}
-
-func inlinePaths(entries []storage.Entry) []string {
-	var recursiveInlinePath func(e storage.Entry) []string
-	recursiveInlinePath = func(e storage.Entry) []string {
-		if len(e.Children) == 0 {
-			return []string{e.Name}
-		}
-
-		var res []string
-		for _, child := range e.Children {
-			childsPath := recursiveInlinePath(child)
-			res = append(res, slices.Map(childsPath, func(p string) string {
-				return path.Join(e.Name, p)
-			})...)
-		}
-
-		return res
-	}
-
-	var res []string
-	for _, entry := range entries {
-		res = append(res, recursiveInlinePath(entry)...)
-	}
-	return res
 }
 
 func (s *store) assertPacked() error {

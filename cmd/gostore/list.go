@@ -27,7 +27,7 @@ func executeList(ctx *cli.Context) error {
 
 	service, configService := newStoreService(ctx)
 
-	entries, err := service.List(ctx.Context, store.ListParams{
+	tree, err := service.List(ctx.Context, store.ListParams{
 		CommonParams: makeCommonParams(ctx),
 		Path:         path,
 	})
@@ -46,21 +46,21 @@ func executeList(ctx *cli.Context) error {
 		root = path
 	}
 
-	tree := treeprint.NewWithRoot(root)
+	treePrinter := treeprint.NewWithRoot(root)
 
-	recursiveList(tree, entries)
-	_, _ = os.Stdout.WriteString(tree.String())
+	recursiveList(treePrinter, tree)
+	_, _ = os.Stdout.WriteString(treePrinter.String())
 
 	return nil
 }
 
-func recursiveList(tree treeprint.Tree, entries []storage.Entry) {
-	for _, entry := range entries {
+func recursiveList(treePrinter treeprint.Tree, tree storage.Tree) {
+	for _, entry := range tree {
 		if len(entry.Children) == 0 {
-			tree.AddNode(entry.Name)
+			treePrinter.AddNode(entry.Name)
 			continue
 		}
 
-		recursiveList(tree.AddBranch(entry.Name), entry.Children)
+		recursiveList(treePrinter.AddBranch(entry.Name), entry.Children)
 	}
 }
