@@ -325,18 +325,20 @@ func (storage *gitStorage) listEntriesRecursively(p string) ([]appstorage.Entry,
 			continue
 		}
 
-		entryType := appstorage.FileEntryType
 		if entry.IsDir() {
-			entryType = appstorage.CatalogEntryType
 			children, err = storage.listEntriesRecursively(path.Join(p, entry.Name()))
 			if err != nil {
 				return nil, err
+			}
+
+			if len(children) == 0 {
+				// skip empty dirs
+				continue
 			}
 		}
 
 		entries = append(entries, appstorage.Entry{
 			Name:     entry.Name(),
-			Type:     entryType,
 			Children: children,
 		})
 	}

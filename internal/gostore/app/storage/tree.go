@@ -7,16 +7,8 @@ import (
 
 type Tree []Entry
 
-type EntryType string
-
-const (
-	FileEntryType    EntryType = "file"
-	CatalogEntryType EntryType = "file"
-)
-
 type Entry struct {
 	Name     string
-	Type     EntryType
 	Children []Entry
 }
 
