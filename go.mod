@@ -10,9 +10,9 @@ require (
 	github.com/fatih/color v1.16.0
 	github.com/go-git/go-git/v5 v5.12.0
 	github.com/pkg/errors v0.9.1
+	github.com/schollz/progressbar/v3 v3.15.0
 	github.com/urfave/cli/v2 v2.27.1
 	github.com/xlab/treeprint v1.2.0
-	golang.org/x/exp v0.0.0-20240604190554-fc45aab8b7f8
 )
 
 require (
@@ -30,7 +30,9 @@ require (
 	github.com/kevinburke/ssh_config v1.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
+	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db // indirect
 	github.com/pjbgf/sha1cd v0.3.0 // indirect
+	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3 // indirect
 	github.com/skeema/knownhosts v1.2.2 // indirect
@@ -40,7 +42,8 @@ require (
 	golang.org/x/mod v0.18.0 // indirect
 	golang.org/x/net v0.26.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
-	golang.org/x/sys v0.21.0 // indirect
+	golang.org/x/sys v0.25.0 // indirect
+	golang.org/x/term v0.24.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
 	golang.org/x/tools v0.22.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect

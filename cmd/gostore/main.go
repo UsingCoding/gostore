@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/UsingCoding/gostore/internal/common/errors"
+	"github.com/UsingCoding/gostore/internal/gostore/app/progress"
 	"github.com/UsingCoding/gostore/internal/gostore/app/store"
 	"github.com/UsingCoding/gostore/internal/gostore/app/verbose"
 	"github.com/UsingCoding/gostore/internal/gostore/infrastructure/consoleoutput"
@@ -61,6 +62,9 @@ func runApp(ctx context.Context, args []string) error {
 		Usage:                "Secrets store manager",
 		EnableBashCompletion: true,
 		Action:               repl,
+		Before: func(c *cli.Context) error {
+			return initProgress(c)
+		},
 		Commands: []*cli.Command{
 			versionCmd(),
 			initCmd(),
@@ -101,9 +105,21 @@ func runApp(ctx context.Context, args []string) error {
 				Name:    "verbose",
 				Usage:   "Verbose mode: 1, 2, 3",
 				Aliases: []string{"v"},
+				EnvVars: []string{
+					"GOSTORE_VERBOSE",
+				},
 				Action: func(c *cli.Context, i uint) error {
 					return verbose.Valid(i)
 				},
+			},
+			&cli.StringFlag{
+				Name:    "progress",
+				Usage:   "Progress mode: auto|none",
+				Aliases: []string{"p"},
+				EnvVars: []string{
+					"GOSTORE_PROGRESS",
+				},
+				Value: "auto",
 			},
 		},
 		ExitErrHandler: func(c *cli.Context, err error) {
@@ -172,6 +188,17 @@ func makeCommonParams(ctx *cli.Context) store.CommonParams {
 		StorePath: maybe.Maybe[string]{},
 		StoreID:   optStringFromCtx(ctx, "store-id"),
 	}
+}
+
+func initProgress(c *cli.Context) error {
+	p, err := progress.Init(progress.Mode(c.String("progress")))
+	if err != nil {
+		return err
+	}
+
+	c.Context = progress.ToCtx(c.Context, p)
+
+	return nil
 }
 
 func optFromCtx[T any](ctx *cli.Context, key string) maybe.Maybe[T] {

@@ -5,6 +5,7 @@ import (
 	"context"
 	stderrors "errors"
 	"github.com/UsingCoding/gostore/internal/common/maybe"
+	"github.com/UsingCoding/gostore/internal/gostore/app/progress"
 	"github.com/pkg/errors"
 )
 
@@ -29,7 +30,15 @@ func (s *store) unpack(ctx context.Context) (err error) {
 		return err
 	}
 
-	for _, entryPath := range tree.Inline().Keys() {
+	inlinedTree := tree.Inline()
+
+	p := progress.FromCtx(ctx).Alter(
+		progress.WithMax(int64(len(inlinedTree.Keys()))),
+		progress.WithDescription("Unpacking store"),
+		progress.WithIts(),
+	)
+
+	for _, entryPath := range inlinedTree.Keys() {
 		secretData, err2 := s.get(ctx, entryPath, maybe.NewNone[string]())
 		if err2 != nil {
 			return err2
@@ -55,6 +64,8 @@ func (s *store) unpack(ctx context.Context) (err error) {
 		if err2 != nil {
 			return errors.Wrapf(err2, "failed to store secret %s", entryPath)
 		}
+
+		p.Inc()
 	}
 
 	return err
@@ -72,11 +83,21 @@ func (s *store) pack(ctx context.Context) error {
 		return err
 	}
 
-	for _, entryPath := range tree.Inline().Keys() {
+	inlinedTree := tree.Inline()
+
+	p := progress.FromCtx(ctx).Alter(
+		progress.WithMax(int64(len(inlinedTree.Keys()))),
+		progress.WithDescription("Packing store"),
+		progress.WithIts(),
+	)
+
+	for _, entryPath := range inlinedTree.Keys() {
 		err = s.packSecret(ctx, entryPath)
 		if err != nil {
 			return errors.Wrapf(err, "failed to pack secret %s", entryPath)
 		}
+
+		p.Inc()
 	}
 
 	// packing store back may introduce changes in objects

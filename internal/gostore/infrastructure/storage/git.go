@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"github.com/UsingCoding/gostore/internal/gostore/app/progress"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"io"
 	"os"
@@ -247,6 +248,7 @@ func (storage *gitStorage) Push(ctx context.Context) error {
 	err := storage.repo.PushContext(ctx, &git.PushOptions{
 		RemoteName: remoteName,
 		Auth:       nil,
+		Progress:   defaultProgress(ctx),
 	})
 	if errors.Is(err, git.NoErrAlreadyUpToDate) {
 		return nil
@@ -257,6 +259,7 @@ func (storage *gitStorage) Push(ctx context.Context) error {
 func (storage *gitStorage) Pull(ctx context.Context) error {
 	err := storage.repo.FetchContext(ctx, &git.FetchOptions{
 		RemoteName: remoteName,
+		Progress:   defaultProgress(ctx),
 	})
 	if err != nil {
 		if errors.Is(err, git.NoErrAlreadyUpToDate) {
@@ -272,6 +275,7 @@ func (storage *gitStorage) Pull(ctx context.Context) error {
 
 	err = worktree.PullContext(ctx, &git.PullOptions{
 		RemoteName: remoteName,
+		Progress:   defaultProgress(ctx),
 	})
 	return errors.Wrap(err, "failed to pull from repo")
 }
@@ -370,4 +374,12 @@ func (storage *gitStorage) getLastCommit(p maybe.Maybe[string]) (*object.Commit,
 
 	iter.Close()
 	return next, nil
+}
+
+func defaultProgress(ctx context.Context) progress.Progress {
+	return progress.FromCtx(ctx).Alter(
+		progress.WithDescription("Packing store"),
+		progress.WithBytes(true),
+		progress.WithSpinnerType(11),
+	)
 }
