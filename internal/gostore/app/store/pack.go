@@ -37,6 +37,7 @@ func (s *store) unpack(ctx context.Context) (err error) {
 		progress.WithDescription("Unpacking store"),
 		progress.WithIts(),
 	)
+	defer p.Finish()
 
 	for _, entryPath := range inlinedTree.Keys() {
 		secretData, err2 := s.get(ctx, entryPath, maybe.NewNone[string]())
@@ -90,6 +91,7 @@ func (s *store) pack(ctx context.Context) error {
 		progress.WithDescription("Packing store"),
 		progress.WithIts(),
 	)
+	defer p.Finish()
 
 	for _, entryPath := range inlinedTree.Keys() {
 		err = s.packSecret(ctx, entryPath)

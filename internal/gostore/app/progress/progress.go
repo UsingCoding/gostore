@@ -1,7 +1,6 @@
 package progress
 
 import (
-	"fmt"
 	"github.com/schollz/progressbar/v3"
 	"io"
 )
@@ -11,6 +10,11 @@ type Progress interface {
 
 	Add(delta int64)
 	Inc()
+
+	// Finish fills bar to full
+	Finish()
+	// Exit progress and leave progress at current state
+	Exit()
 
 	Alter(opts ...Option) Progress
 }
@@ -49,7 +53,6 @@ type progress struct {
 }
 
 func (p progress) Write(data []byte) (n int, err error) {
-	fmt.Println("WRITE")
 	return p.progress.Write(data)
 }
 
@@ -59,6 +62,14 @@ func (p progress) Add(delta int64) {
 
 func (p progress) Inc() {
 	_ = p.progress.Add64(1)
+}
+
+func (p progress) Finish() {
+	_ = p.progress.Finish()
+}
+
+func (p progress) Exit() {
+	_ = p.progress.Exit()
 }
 
 func (p progress) Alter(opts ...Option) Progress {

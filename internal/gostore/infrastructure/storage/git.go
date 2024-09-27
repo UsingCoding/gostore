@@ -245,10 +245,13 @@ func (storage *gitStorage) HasRemote(context.Context) (bool, error) {
 }
 
 func (storage *gitStorage) Push(ctx context.Context) error {
+	p := defaultProgress(ctx)
+	defer p.Finish()
+
 	err := storage.repo.PushContext(ctx, &git.PushOptions{
 		RemoteName: remoteName,
 		Auth:       nil,
-		Progress:   defaultProgress(ctx),
+		Progress:   p,
 	})
 	if errors.Is(err, git.NoErrAlreadyUpToDate) {
 		return nil
@@ -257,9 +260,12 @@ func (storage *gitStorage) Push(ctx context.Context) error {
 }
 
 func (storage *gitStorage) Pull(ctx context.Context) error {
+	p := defaultProgress(ctx)
+	defer p.Finish()
+
 	err := storage.repo.FetchContext(ctx, &git.FetchOptions{
 		RemoteName: remoteName,
-		Progress:   defaultProgress(ctx),
+		Progress:   p,
 	})
 	if err != nil {
 		if errors.Is(err, git.NoErrAlreadyUpToDate) {
@@ -273,9 +279,12 @@ func (storage *gitStorage) Pull(ctx context.Context) error {
 		return errors.WithStack(err)
 	}
 
+	p = defaultProgress(ctx)
+	defer p.Finish()
+
 	err = worktree.PullContext(ctx, &git.PullOptions{
 		RemoteName: remoteName,
-		Progress:   defaultProgress(ctx),
+		Progress:   p,
 	})
 	return errors.Wrap(err, "failed to pull from repo")
 }
