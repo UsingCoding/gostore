@@ -2,11 +2,13 @@ package storage
 
 import (
 	"context"
-	"github.com/UsingCoding/gostore/internal/gostore/app/progress"
-	"github.com/go-git/go-git/v5/plumbing/object"
 	"io"
 	"os"
 	"path"
+
+	"github.com/go-git/go-git/v5/plumbing/object"
+
+	"github.com/UsingCoding/gostore/internal/gostore/app/progress"
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
@@ -161,7 +163,7 @@ func (storage *gitStorage) Get(_ context.Context, p string) (maybe.Maybe[[]byte]
 	}
 
 	if stat.IsDir() {
-		return maybe.NewNone[[]byte](), errors.Errorf("find directory from storage, not a file: %s", p)
+		return maybe.NewNone[[]byte](), errors.Errorf("found directory from storage, not a file: %s", p)
 	}
 
 	data, err := os.ReadFile(fullPath)

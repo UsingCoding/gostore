@@ -1,14 +1,19 @@
 package main
 
 import (
+	"encoding/json"
 	"os"
 
+	"github.com/UsingCoding/fpgo/pkg/slices"
+	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
 	"github.com/xlab/treeprint"
 
 	"github.com/UsingCoding/gostore/internal/common/maybe"
+	"github.com/UsingCoding/gostore/internal/gostore/app/output"
 	"github.com/UsingCoding/gostore/internal/gostore/app/storage"
 	"github.com/UsingCoding/gostore/internal/gostore/app/store"
+	"github.com/UsingCoding/gostore/internal/gostore/infrastructure/consoleoutput"
 )
 
 func list() *cli.Command {
@@ -40,16 +45,34 @@ func executeList(ctx *cli.Context) error {
 		return err
 	}
 
+	o := consoleoutput.New(os.Stdout, consoleoutput.WithNewline(true))
+
 	// just value without check since to use service.List we already has store in context
 	root := string(maybe.Just(currentStoreID))
 	if path != "" {
 		root = path
 	}
 
-	treePrinter := treeprint.NewWithRoot(root)
+	switch output.FromCtx(ctx.Context) {
+	case output.JSON:
+		rootNode := jsonTreeNode{
+			Name:  root,
+			Elems: recursiveJSONList(tree),
+		}
 
-	recursiveList(treePrinter, tree)
-	_, _ = os.Stdout.WriteString(treePrinter.String())
+		data, err2 := json.Marshal(rootNode)
+		if err2 != nil {
+			return errors.Wrap(err2, "failed to marshal storage tree")
+		}
+
+		o.Printf(string(data))
+	default:
+		treePrinter := treeprint.NewWithRoot(root)
+
+		recursiveList(treePrinter, tree)
+		_, _ = os.Stdout.WriteString(treePrinter.String())
+
+	}
 
 	return nil
 }
@@ -63,4 +86,18 @@ func recursiveList(treePrinter treeprint.Tree, tree storage.Tree) {
 
 		recursiveList(treePrinter.AddBranch(entry.Name), entry.Children)
 	}
+}
+
+func recursiveJSONList(tree storage.Tree) []jsonTreeNode {
+	return slices.Map(tree, func(e storage.Entry) jsonTreeNode {
+		return jsonTreeNode{
+			Name:  e.Name,
+			Elems: recursiveJSONList(e.Children),
+		}
+	})
+}
+
+type jsonTreeNode struct {
+	Name  string         `json:"name"`
+	Elems []jsonTreeNode `json:"children,omitempty"`
 }

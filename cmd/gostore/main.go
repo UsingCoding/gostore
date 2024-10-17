@@ -3,17 +3,20 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"github.com/UsingCoding/gostore/internal/common/errors"
-	"github.com/UsingCoding/gostore/internal/gostore/app/progress"
-	"github.com/UsingCoding/gostore/internal/gostore/app/store"
-	"github.com/UsingCoding/gostore/internal/gostore/app/verbose"
-	"github.com/UsingCoding/gostore/internal/gostore/infrastructure/consoleoutput"
-	"github.com/urfave/cli/v2"
 	stdlog "log"
 	"os"
 	"os/signal"
 	"path"
 	"syscall"
+
+	"github.com/urfave/cli/v2"
+
+	"github.com/UsingCoding/gostore/internal/common/errors"
+	"github.com/UsingCoding/gostore/internal/gostore/app/output"
+	"github.com/UsingCoding/gostore/internal/gostore/app/progress"
+	"github.com/UsingCoding/gostore/internal/gostore/app/store"
+	"github.com/UsingCoding/gostore/internal/gostore/app/verbose"
+	"github.com/UsingCoding/gostore/internal/gostore/infrastructure/consoleoutput"
 
 	contextcmd "github.com/UsingCoding/gostore/cmd/gostore/context"
 	identitycmd "github.com/UsingCoding/gostore/cmd/gostore/identity"
@@ -63,7 +66,11 @@ func runApp(ctx context.Context, args []string) error {
 		EnableBashCompletion: true,
 		Action:               repl,
 		Before: func(c *cli.Context) error {
-			return initProgress(c)
+			err = initProgress(c)
+			if err != nil {
+				return err
+			}
+			return initOutput(c)
 		},
 		Commands: []*cli.Command{
 			versionCmd(),
@@ -120,6 +127,15 @@ func runApp(ctx context.Context, args []string) error {
 					"GOSTORE_PROGRESS",
 				},
 				Value: "auto",
+			},
+			&cli.StringFlag{
+				Name:    "output",
+				Usage:   "Output type: plain|json",
+				Aliases: []string{"o"},
+				EnvVars: []string{
+					"GOSTORE_OUTPUT",
+				},
+				Value: "plain",
 			},
 		},
 		ExitErrHandler: func(c *cli.Context, err error) {
@@ -198,6 +214,16 @@ func initProgress(c *cli.Context) error {
 
 	c.Context = progress.ToCtx(c.Context, p)
 
+	return nil
+}
+
+func initOutput(c *cli.Context) error {
+	ctx, err := output.InitToCtx(c.Context, c.String("output"))
+	if err != nil {
+		return err
+	}
+
+	c.Context = ctx
 	return nil
 }
 
