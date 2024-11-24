@@ -1,13 +1,14 @@
 package main
 
 import (
+	"io"
+	"os"
+
 	"github.com/UsingCoding/fpgo/pkg/slices"
 	"github.com/anmitsu/go-shlex"
 	"github.com/ergochat/readline"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
-	"io"
-	"os"
 
 	"github.com/UsingCoding/gostore/data"
 	"github.com/UsingCoding/gostore/internal/gostore/app/service"
@@ -30,7 +31,7 @@ func repl(ctx *cli.Context) error {
 	}()
 
 	// override ExitErrHandler to exclude application shutdown
-	ctx.App.ExitErrHandler = func(c *cli.Context, err error) {
+	ctx.App.ExitErrHandler = func(_ *cli.Context, err error) {
 		if err == nil {
 			return
 		}

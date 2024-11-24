@@ -116,7 +116,7 @@ func runApp(ctx context.Context, args []string) error {
 				EnvVars: []string{
 					"GOSTORE_VERBOSE",
 				},
-				Action: func(c *cli.Context, i uint) error {
+				Action: func(_ *cli.Context, i uint) error {
 					return verbose.Valid(i)
 				},
 			},
@@ -180,24 +180,25 @@ func subscribeForKillSignals(ctx context.Context) context.Context {
 	return ctx
 }
 
-func newStoreService(ctx *cli.Context) (service.Service, config.Service) {
+func newStoreService(ctx *cli.Context) (s service.Service, c config.Service) {
 	gostoreBaseDir := ctx.String("gostore-base-path")
 
 	storageManager := storage.NewManager()
-	configService := config.NewService(
+	c = config.NewService(
 		infraconfig.NewStorage(gostoreBaseDir),
 		gostoreBaseDir,
 		storageManager,
 		encryption.NewManager(),
 	)
-
-	return service.NewService(
-		configService,
+	s = service.NewService(
+		c,
 		storageManager,
 		encryption.NewManager(),
 		infrastore.NewManifestSerializer(),
 		infrastore.NewSecretSerializer(),
-	), configService
+	)
+
+	return s, c
 }
 
 func makeCommonParams(ctx *cli.Context) store.CommonParams {
@@ -226,20 +227,6 @@ func initOutput(c *cli.Context) error {
 
 	c.Context = ctx
 	return nil
-}
-
-func optFromCtx[T any](ctx *cli.Context, key string) maybe.Maybe[T] {
-	v := ctx.Generic(key)
-	if v == nil {
-		return maybe.Maybe[T]{}
-	}
-
-	t, ok := v.(T)
-	if !ok {
-		return maybe.Maybe[T]{}
-	}
-
-	return maybe.NewJust(t)
 }
 
 func optStringFromCtx(ctx *cli.Context, key string) maybe.Maybe[string] {

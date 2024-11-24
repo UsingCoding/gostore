@@ -7,7 +7,7 @@ import (
 func rollback() *cli.Command {
 	return &cli.Command{
 		Name:   "rollback",
-		Usage:  "Rollback uncommited changes and operations in store",
+		Usage:  "Rollback uncommitted changes and operations in store",
 		Action: executeRollback,
 	}
 }

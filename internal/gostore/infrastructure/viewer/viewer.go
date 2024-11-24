@@ -64,6 +64,7 @@ func (v *viewer) View(_ context.Context, p string, data []byte) error {
 }
 
 func (v *viewer) run(p string) error {
+	//nolint:gosec
 	cmd := exec.Command(v.cmd, p)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout

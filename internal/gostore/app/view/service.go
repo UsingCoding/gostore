@@ -41,6 +41,7 @@ func (s *service) View(ctx context.Context, p string, key maybe.Maybe[string]) e
 	}
 
 	var secret maybe.Maybe[store.SecretData]
+	//nolint:nestif
 	if maybe.Valid(key) {
 		for _, d := range data {
 			if d.Name == maybe.Just(key) {

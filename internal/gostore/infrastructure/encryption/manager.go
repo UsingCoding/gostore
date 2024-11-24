@@ -21,7 +21,7 @@ func (manager *encryptionManager) GenerateIdentity(e encryption.Encryption) (enc
 	return service.generateIdentity()
 }
 
-func (manager *encryptionManager) PrivateKey(key encryption.Recipient) (encryption.PrivateKey, error) {
+func (manager *encryptionManager) PrivateKey(_ encryption.Recipient) (encryption.PrivateKey, error) {
 	return nil, nil
 }
 

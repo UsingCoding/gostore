@@ -71,7 +71,6 @@ func executeList(ctx *cli.Context) error {
 
 		recursiveList(treePrinter, tree)
 		_, _ = os.Stdout.WriteString(treePrinter.String())
-
 	}
 
 	return nil

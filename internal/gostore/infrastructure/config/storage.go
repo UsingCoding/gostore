@@ -107,7 +107,8 @@ func (s *storage) Store(_ context.Context, c appconfig.Config) error {
 
 	p := path.Join(s.configDir, configName)
 
-	err = os.WriteFile(p, data, 0644)
+	//nolint:gosec
+	err = os.WriteFile(p, data, 0o644)
 	return errors.Wrapf(err, "failed to save config to file %s", p)
 }
 
@@ -129,8 +130,8 @@ type identity struct {
 	PrivateKey string `json:"privateKey"`
 }
 
-func exists(path string) (bool, error) {
-	_, err := os.Stat(path)
+func exists(p string) (bool, error) {
+	_, err := os.Stat(p)
 	if err == nil {
 		return true, nil
 	}

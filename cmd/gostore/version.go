@@ -2,9 +2,11 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/UsingCoding/gostore/internal/gostore/infrastructure/consoleoutput"
-	"github.com/urfave/cli/v2"
 	"os"
+
+	"github.com/urfave/cli/v2"
+
+	"github.com/UsingCoding/gostore/internal/gostore/infrastructure/consoleoutput"
 )
 
 func versionCmd() *cli.Command {
@@ -15,7 +17,7 @@ func versionCmd() *cli.Command {
 	}
 }
 
-func executeVersion(c *cli.Context) error {
+func executeVersion(_ *cli.Context) error {
 	v := struct {
 		Version string `json:"version"`
 	}{

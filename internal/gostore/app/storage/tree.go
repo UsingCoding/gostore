@@ -1,8 +1,9 @@
 package storage
 
 import (
-	"github.com/UsingCoding/gostore/internal/common/orderedmap"
 	"path/filepath"
+
+	"github.com/UsingCoding/gostore/internal/common/orderedmap"
 )
 
 type Tree []Entry

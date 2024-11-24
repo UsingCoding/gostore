@@ -27,10 +27,6 @@ func mount() *cli.Command {
 }
 
 func executeMount(ctx *cli.Context) error {
-	const (
-		fsID = "gostore"
-	)
-
 	if ctx.Args().Len() < 1 {
 		return errors.New("mount point required")
 	}

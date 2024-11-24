@@ -87,8 +87,10 @@ func (e *editor) Edit(_ context.Context, p string, data []byte) ([]byte, error) 
 }
 
 func (e *editor) run(p string) error {
+	//nolint:gocritic
 	args := append(e.args, p)
 
+	//nolint:gosec
 	cmd := exec.Command(args[0], args[1:]...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout

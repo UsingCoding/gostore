@@ -30,7 +30,7 @@ func executeExport(ctx *cli.Context) error {
 	service := newConfigService(ctx)
 
 	recipients := ctx.StringSlice("recipients")
-	if len(recipients) < 0 {
+	if len(recipients) == 0 {
 		return errors.New("empty slice of recipients")
 	}
 

@@ -26,7 +26,7 @@ func move(src, dst string) error {
 	}
 
 	if !e {
-		err = os.MkdirAll(dstDir, 0755)
+		err = os.MkdirAll(dstDir, 0o755)
 		if err != nil {
 			return errors.Wrapf(err, "failed to create dir for path %s", dst)
 		}
@@ -57,7 +57,7 @@ func copyPath(src, dst string) error {
 
 		switch fileInfo.Mode() & os.ModeType {
 		case os.ModeDir:
-			if err = createDirIfNotExists(dstPath, 0755); err != nil {
+			if err = createDirIfNotExists(dstPath, 0o755); err != nil {
 				return err
 			}
 		case os.ModeSymlink:
@@ -95,7 +95,7 @@ func copyFile(srcFile, dstFile string) error {
 			return err
 		}
 
-		err = os.MkdirAll(path.Dir(dstFile), 0755)
+		err = os.MkdirAll(path.Dir(dstFile), 0o755)
 		if err != nil {
 			return errors.Wrapf(err, "failed to create dir for path %s", dstFile)
 		}

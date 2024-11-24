@@ -1,8 +1,9 @@
 package progress
 
 import (
-	"github.com/schollz/progressbar/v3"
 	"io"
+
+	"github.com/schollz/progressbar/v3"
 )
 
 type Progress interface {

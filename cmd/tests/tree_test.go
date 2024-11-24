@@ -233,7 +233,6 @@ func TestTreeCopy(t *testing.T) {
 			list.Nodes[0],
 		)
 	})
-
 }
 
 func createSubTree(basePath string, s suite, tree api.ListNode) error {
@@ -243,7 +242,6 @@ func createSubTree(basePath string, s suite, tree api.ListNode) error {
 			Path: p,
 			Data: generateData(),
 		})
-
 	}
 
 	for _, node := range tree.Nodes {

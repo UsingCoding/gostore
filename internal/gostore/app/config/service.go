@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"context"
 	stderrors "errors"
-	"slices"
+	stdslices "slices"
 
-	fpslices "github.com/UsingCoding/fpgo/pkg/slices"
+	"github.com/UsingCoding/fpgo/pkg/slices"
 	"github.com/pkg/errors"
 
 	"github.com/UsingCoding/gostore/internal/common/maybe"
@@ -45,13 +45,13 @@ type Service interface {
 }
 
 func NewService(
-	storage Storage,
+	s Storage,
 	gostoreLocation string,
 	storageManager storage.Manager,
 	encryptionManager encryption.Manager,
 ) Service {
 	return &service{
-		storage:           storage,
+		storage:           s,
 		gostoreLocation:   gostoreLocation,
 		storageManager:    storageManager,
 		encryptionManager: encryptionManager,
@@ -90,7 +90,7 @@ func (s *service) SetCurrentStore(ctx context.Context, storeID string) error {
 		return errors.Wrap(err, "failed to load config")
 	}
 
-	i := slices.IndexFunc(config.Stores, func(s Store) bool {
+	i := stdslices.IndexFunc(config.Stores, func(s Store) bool {
 		return string(s.ID) == storeID
 	})
 	if i == -1 {
@@ -122,7 +122,7 @@ func (s *service) CurrentStorePath(ctx context.Context) (maybe.Maybe[string], er
 		return maybe.Maybe[string]{}, nil
 	}
 
-	i := slices.IndexFunc(config.Stores, func(s Store) bool {
+	i := stdslices.IndexFunc(config.Stores, func(s Store) bool {
 		return s.ID == maybe.Just(config.Context)
 	})
 	if i == -1 {
@@ -142,7 +142,7 @@ func (s *service) ListStores(ctx context.Context) ([]StoreView, error) {
 		return nil, errors.Wrap(err, "failed to load config")
 	}
 
-	return fpslices.Map(config.Stores, func(s Store) StoreView {
+	return slices.Map(config.Stores, func(s Store) StoreView {
 		return StoreView{
 			ID:      s.ID,
 			Path:    s.Path,
@@ -157,7 +157,7 @@ func (s *service) StoreByID(ctx context.Context, storeID StoreID) (maybe.Maybe[S
 		return maybe.Maybe[StoreView]{}, err
 	}
 
-	i := slices.IndexFunc(config.Stores, func(s Store) bool {
+	i := stdslices.IndexFunc(config.Stores, func(s Store) bool {
 		return s.ID == storeID
 	})
 	if i == -1 {
@@ -180,7 +180,7 @@ func (s *service) AddIdentity(ctx context.Context, identities ...encryption.Iden
 	}
 
 	for _, identity := range identities {
-		i := slices.IndexFunc(config.Identities, func(i encryption.Identity) bool {
+		i := stdslices.IndexFunc(config.Identities, func(i encryption.Identity) bool {
 			return bytes.Equal(identity.Recipient, i.Recipient)
 		})
 
@@ -205,7 +205,7 @@ func (s *service) AddStore(ctx context.Context, storeID StoreID, path string) er
 		return errors.Wrap(err, "failed to load config")
 	}
 
-	i := slices.IndexFunc(config.Stores, func(s Store) bool {
+	i := stdslices.IndexFunc(config.Stores, func(s Store) bool {
 		return s.ID == storeID
 	})
 
@@ -238,7 +238,7 @@ func (s *service) ImportRawIdentity(ctx context.Context, provider encryption.Pro
 		return err
 	}
 
-	i := slices.IndexFunc(config.Identities, func(i encryption.Identity) bool {
+	i := stdslices.IndexFunc(config.Identities, func(i encryption.Identity) bool {
 		return bytes.Equal(i.Recipient, identity.Recipient)
 	})
 
@@ -256,9 +256,8 @@ func (s *service) ExportRawIdentity(ctx context.Context, recipients ...encryptio
 		return nil, errors.Wrap(err, "failed to load config")
 	}
 
-	var res [][]byte
-	for _, recipient := range recipients {
-		i := slices.IndexFunc(config.Identities, func(i encryption.Identity) bool {
+	return slices.MapErr(recipients, func(recipient encryption.Recipient) ([]byte, error) {
+		i := stdslices.IndexFunc(config.Identities, func(i encryption.Identity) bool {
 			return bytes.Equal(i.Recipient, recipient)
 		})
 
@@ -271,10 +270,9 @@ func (s *service) ExportRawIdentity(ctx context.Context, recipients ...encryptio
 		if err2 != nil {
 			return nil, errors.Wrapf(err2, "failed to export raw identity for %s", identity.Recipient)
 		}
-		res = append(res, data)
-	}
 
-	return res, nil
+		return data, nil
+	})
 }
 
 func (s *service) RemoveStore(ctx context.Context, storeID StoreID) error {
@@ -283,7 +281,7 @@ func (s *service) RemoveStore(ctx context.Context, storeID StoreID) error {
 		return errors.Wrap(err, "failed to load config")
 	}
 
-	i := slices.IndexFunc(config.Stores, func(s Store) bool {
+	i := stdslices.IndexFunc(config.Stores, func(s Store) bool {
 		return s.ID == storeID
 	})
 
@@ -320,7 +318,7 @@ func (s *service) IdentityByRecipient(ctx context.Context, recipient encryption.
 		return maybe.Maybe[encryption.Identity]{}, errors.Wrap(err, "failed to load config")
 	}
 
-	i := slices.IndexFunc(config.Identities, func(i encryption.Identity) bool {
+	i := stdslices.IndexFunc(config.Identities, func(i encryption.Identity) bool {
 		return bytes.Equal(recipient, i.Recipient)
 	})
 

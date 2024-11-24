@@ -1,9 +1,10 @@
 package store
 
 import (
+	stdslices "slices"
+
+	"github.com/UsingCoding/fpgo/pkg/slices"
 	"github.com/pkg/errors"
-	"maps"
-	"slices"
 
 	"github.com/UsingCoding/gostore/internal/common/maybe"
 )
@@ -54,18 +55,15 @@ func (s *Secret) getAll(key maybe.Maybe[string]) []SecretData {
 		keys = append(keys, name)
 	}
 
-	slices.Sort(keys)
+	stdslices.Sort(keys)
 
-	var secrets []SecretData
-	for _, k := range keys {
-		secrets = append(secrets, SecretData{
+	return slices.Map(keys, func(k string) SecretData {
+		return SecretData{
 			Name:    k,
 			Payload: s.Payload[k],
 			Default: k == defaultKey,
-		})
-	}
-
-	return secrets
+		}
+	})
 }
 
 func (s *Secret) iterate(f func(k string, v []byte) error) error {
@@ -87,23 +85,6 @@ func (s *Secret) encrypt(encryptor func(data []byte) ([]byte, error)) (err error
 		s.Payload[k] = v
 	}
 	return nil
-}
-
-func (s *Secret) decrypt(decryptor func(data []byte) ([]byte, error)) (err error) {
-	for k, v := range s.Payload {
-		v, err = decryptor(v)
-		if err != nil {
-			return errors.Wrap(err, "failed to decrypt secret value")
-		}
-		s.Payload[k] = v
-	}
-	return nil
-}
-
-func (s *Secret) clone() Secret {
-	return Secret{
-		Payload: maps.Clone(s.Payload),
-	}
 }
 
 func (s *Secret) remove(key string) {

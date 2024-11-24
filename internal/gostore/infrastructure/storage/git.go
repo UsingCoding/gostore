@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"os"
 	"path"
@@ -49,7 +50,8 @@ func (storage *gitStorage) Store(_ context.Context, p string, data []byte) error
 		}
 	}
 
-	err := os.WriteFile(fullPath, data, 0644)
+	//nolint:gosec
+	err := os.WriteFile(fullPath, data, 0o644)
 	if err != nil {
 		return errors.Wrapf(err, "failed to write file to %s", fullPath)
 	}
@@ -229,7 +231,7 @@ func (storage *gitStorage) List(_ context.Context, p string) (appstorage.Tree, e
 	return entries, errors.Wrap(err, "failed to list storage entries")
 }
 
-func (storage *gitStorage) AddRemote(_ context.Context, remoteName string, remoteAddr string) error {
+func (storage *gitStorage) AddRemote(_ context.Context, remoteName, remoteAddr string) error {
 	_, err := storage.repo.CreateRemote(&config.RemoteConfig{
 		Name: remoteName,
 		URLs: []string{remoteAddr},
@@ -331,6 +333,7 @@ func (storage *gitStorage) listEntriesRecursively(p string) ([]appstorage.Entry,
 		return nil, errors.Wrapf(err, "failed to read dir %s", p)
 	}
 
+	//nolint:prealloc
 	var entries []appstorage.Entry
 
 	for _, entry := range dirEntries {
@@ -372,7 +375,11 @@ func (storage *gitStorage) getLastCommit(p maybe.Maybe[string]) (*object.Commit,
 		},
 	})
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get last commit with associated file %s", p)
+		msg := "failed to get last commit"
+		if f, ok := maybe.JustValid(p); ok {
+			msg += fmt.Sprintf(" (%s)", f)
+		}
+		return nil, errors.Wrap(err, msg)
 	}
 
 	next, err := iter.Next()

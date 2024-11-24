@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/UsingCoding/gostore/internal/gostore/app/store"
 	"github.com/UsingCoding/gostore/internal/gostore/infrastructure/consoleoutput"
-	"os"
 
 	"github.com/urfave/cli/v2"
 

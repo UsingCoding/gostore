@@ -2,6 +2,7 @@ package store
 
 import (
 	"encoding/json"
+
 	"github.com/UsingCoding/gostore/internal/common/maybe"
 
 	"github.com/pkg/errors"

@@ -1,3 +1,5 @@
+//go:build !windows
+
 package fuse
 
 import (
@@ -21,8 +23,8 @@ type Dir struct {
 	path string
 }
 
-func (d *Dir) Attr(ctx context.Context, a *fuse.Attr) error {
-	a.Mode = os.ModeDir | 0755
+func (d *Dir) Attr(_ context.Context, a *fuse.Attr) error {
+	a.Mode = os.ModeDir | 0o755
 	a.Mtime = time.Now()
 	return nil
 }

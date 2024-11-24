@@ -2,8 +2,9 @@ package store
 
 import (
 	"fmt"
-	"github.com/UsingCoding/gostore/internal/common/maybe"
 	"strings"
+
+	"github.com/UsingCoding/gostore/internal/common/maybe"
 )
 
 type operations []string
@@ -19,8 +20,6 @@ func (s *operations) len() int {
 func (s *operations) String() string {
 	return strings.Join(*s, "; ")
 }
-
-type operation string
 
 func addOperation(path string, key maybe.Maybe[string]) string {
 	txt := "Add %s"

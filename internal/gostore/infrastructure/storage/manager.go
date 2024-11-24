@@ -58,7 +58,7 @@ func (m *manager) Init(
 	}
 }
 
-func (m *manager) Clone(ctx context.Context, p string, remote string, t storage.Type) (storage.Storage, error) {
+func (m *manager) Clone(ctx context.Context, p, remote string, t storage.Type) (storage.Storage, error) {
 	ok, err := exists(p)
 	if err != nil {
 		return nil, err
@@ -141,7 +141,7 @@ func (m *manager) initGitStorage(p string, remote maybe.Maybe[string]) (storage.
 	}, nil
 }
 
-func (m *manager) cloneGitStorage(ctx context.Context, p string, remote string) (storage.Storage, error) {
+func (m *manager) cloneGitStorage(ctx context.Context, p, remote string) (storage.Storage, error) {
 	repo, err := git.PlainCloneContext(
 		ctx,
 		p,
@@ -162,8 +162,8 @@ func (m *manager) cloneGitStorage(ctx context.Context, p string, remote string) 
 	}, nil
 }
 
-func exists(path string) (bool, error) {
-	_, err := stdos.Stat(path)
+func exists(p string) (bool, error) {
+	_, err := stdos.Stat(p)
 	if err == nil {
 		return true, nil
 	}

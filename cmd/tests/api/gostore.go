@@ -11,6 +11,7 @@ import (
 )
 
 func (a api) gostore(in input) (output, error) {
+	//nolint:gosec
 	c := exec.Command(
 		path.Join("..", "..", gostorePath),
 		in.args...,

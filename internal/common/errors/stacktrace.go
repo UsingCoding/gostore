@@ -2,6 +2,7 @@ package errors
 
 import (
 	"fmt"
+
 	"github.com/UsingCoding/fpgo/pkg/slices"
 	"github.com/pkg/errors"
 )
@@ -36,7 +37,6 @@ func recursiveTraces(err error, traces *[]Trace) {
 			}),
 		)
 	}
-
 }
 
 type stackTracer interface {

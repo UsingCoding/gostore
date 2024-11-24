@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"context"
 	stderrors "errors"
+
+	"github.com/pkg/errors"
+
 	"github.com/UsingCoding/gostore/internal/common/maybe"
 	"github.com/UsingCoding/gostore/internal/gostore/app/progress"
-	"github.com/pkg/errors"
 )
 
 func (s *store) unpack(ctx context.Context) (err error) {

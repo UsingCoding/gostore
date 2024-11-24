@@ -1,3 +1,5 @@
+//go:build !windows
+
 package fuse
 
 import (
@@ -28,7 +30,7 @@ func (f *File) Attr(ctx context.Context, a *fuse.Attr) error {
 		return err
 	}
 
-	a.Mode = 0644
+	a.Mode = 0o644
 	if len(data) > 0 {
 		i := slices.IndexFunc(data, func(s store.SecretData) bool {
 			return s.Default
@@ -37,7 +39,6 @@ func (f *File) Attr(ctx context.Context, a *fuse.Attr) error {
 			// set size only from default payload
 			a.Size = uint64(len(data[i].Payload))
 		}
-
 	}
 	a.Mtime = time.Now()
 	return nil
@@ -64,7 +65,7 @@ func (f *File) ReadAll(ctx context.Context) ([]byte, error) {
 	return data[i].Payload, nil
 }
 
-func (f *File) Write(ctx context.Context, req *fuse.WriteRequest, resp *fuse.WriteResponse) error {
+func (f *File) Write(_ context.Context, req *fuse.WriteRequest, resp *fuse.WriteResponse) error {
 	// Extend buffer if needed
 	necessaryBufferSize := req.Offset + int64(len(req.Data))
 
@@ -80,7 +81,7 @@ func (f *File) Write(ctx context.Context, req *fuse.WriteRequest, resp *fuse.Wri
 	return nil
 }
 
-func (f *File) Flush(ctx context.Context, req *fuse.FlushRequest) error {
+func (f *File) Flush(ctx context.Context, _ *fuse.FlushRequest) error {
 	if len(f.buffer) > 0 {
 		err := f.r.service.Add(ctx, store.AddParams{
 			Path: f.path,

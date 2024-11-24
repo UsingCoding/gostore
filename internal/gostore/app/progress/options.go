@@ -32,9 +32,7 @@ func WithWidth(w int) Option {
 }
 
 func WithCleanOnFinish() Option {
-	return OptionFunc(func() progressbar.Option {
-		return progressbar.OptionClearOnFinish()
-	})
+	return OptionFunc(progressbar.OptionClearOnFinish)
 }
 
 func WithOnComplete(f func()) Option {
@@ -50,9 +48,7 @@ func WithDescription(desc string) Option {
 }
 
 func WithIts() Option {
-	return OptionFunc(func() progressbar.Option {
-		return progressbar.OptionShowIts()
-	})
+	return OptionFunc(progressbar.OptionShowIts)
 }
 
 func WithBytes(enabled bool) Option {
@@ -68,9 +64,7 @@ func WithSpinnerType(spinnerType int) Option {
 }
 
 func WithShowElapsedTime() Option {
-	return OptionFunc(func() progressbar.Option {
-		return progressbar.OptionShowElapsedTimeOnFinish()
-	})
+	return OptionFunc(progressbar.OptionShowElapsedTimeOnFinish)
 }
 
 func WithPredictTime(predict bool) Option {
@@ -81,7 +75,6 @@ func WithPredictTime(predict bool) Option {
 
 func WithElapsedTime(elapsed bool) Option {
 	return OptionFunc(func() progressbar.Option {
-		progressbar.OptionShowIts()
 		return progressbar.OptionSetElapsedTime(elapsed)
 	})
 }

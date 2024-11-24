@@ -215,6 +215,7 @@ func (s *service) Rollback(ctx context.Context, params store.CommonParams) error
 		Rollback(ctx, p)
 }
 
+//nolint:nestif
 func (s *service) populateCommonParams(ctx context.Context, params store.CommonParams) (store.CommonParams, error) {
 	if !maybe.Valid(params.StorePath) {
 		var storePath maybe.Maybe[string]
