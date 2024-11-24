@@ -91,6 +91,7 @@ func runApp(ctx context.Context, args []string) error {
 			contextcmd.Context(),
 			identitycmd.Identity(),
 			completion(),
+			mount(),
 		},
 		Flags: []cli.Flag{
 			&cli.StringFlag{

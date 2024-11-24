@@ -5,6 +5,7 @@ go 1.22
 require (
 	filippo.io/age v1.1.1
 	github.com/UsingCoding/fpgo v0.0.3
+	github.com/anacrolix/fuse v0.3.1
 	github.com/anmitsu/go-shlex v0.0.0-20200514113438-38f4b401e2be
 	github.com/ergochat/readline v0.0.6
 	github.com/fatih/color v1.16.0
