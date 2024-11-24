@@ -35,7 +35,7 @@ func move(src, dst string) error {
 }
 
 type sysStat struct {
-	Uid, Gid uint32
+	uid, gid uint32
 }
 
 func copyPath(src, dst string) error {
@@ -73,7 +73,7 @@ func copyPath(src, dst string) error {
 			}
 		}
 
-		if err = os.Lchown(dstPath, int(stat.Uid), int(stat.Gid)); err != nil {
+		if err = os.Lchown(dstPath, int(stat.uid), int(stat.gid)); err != nil {
 			return err
 		}
 		fInfo, err := d.Info()

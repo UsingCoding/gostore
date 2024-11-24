@@ -15,7 +15,7 @@ func castToSysStat(info os.FileInfo) (sysStat, error) {
 	}
 
 	return sysStat{
-		Uid: stat.Uid,
-		Gid: stat.Gid,
+		uid: stat.Uid,
+		gid: stat.Gid,
 	}, nil
 }

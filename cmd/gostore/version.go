@@ -20,8 +20,10 @@ func versionCmd() *cli.Command {
 func executeVersion(_ *cli.Context) error {
 	v := struct {
 		Version string `json:"version"`
+		Commit  string `json:"commit"`
 	}{
 		Version: version,
+		Commit:  commit,
 	}
 	data, err := json.Marshal(v)
 	if err != nil {
