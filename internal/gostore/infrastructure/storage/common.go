@@ -8,7 +8,6 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
-	"syscall"
 
 	"github.com/pkg/errors"
 )
@@ -35,6 +34,10 @@ func move(src, dst string) error {
 	return os.Rename(src, dst)
 }
 
+type sysStat struct {
+	Uid, Gid uint32
+}
+
 func copyPath(src, dst string) error {
 	return filepath.WalkDir(src, func(p string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -50,9 +53,9 @@ func copyPath(src, dst string) error {
 		if err != nil {
 			return err
 		}
-		stat, ok := fileInfo.Sys().(*syscall.Stat_t)
-		if !ok {
-			return fmt.Errorf("failed to get raw syscall.Stat_t data for '%s'", srcPath)
+		stat, err := castToSysStat(fileInfo)
+		if err != nil {
+			return errors.Wrap(err, "copyPath")
 		}
 
 		switch fileInfo.Mode() & os.ModeType {

@@ -34,7 +34,10 @@ const (
 )
 
 var (
-	version = "UNKNOWN"
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
+	builtBy = "unknown"
 )
 
 func main() {

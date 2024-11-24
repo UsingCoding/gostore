@@ -1,6 +1,8 @@
 package fuse
 
 import (
+	"context"
+
 	"github.com/pkg/errors"
 )
 
