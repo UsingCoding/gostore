@@ -6,9 +6,14 @@ import (
 	stderrors "errors"
 
 	"github.com/pkg/errors"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/UsingCoding/gostore/internal/common/maybe"
 	"github.com/UsingCoding/gostore/internal/gostore/app/progress"
+)
+
+const (
+	packWorkers = 50
 )
 
 func (s *store) unpack(ctx context.Context) (err error) {
@@ -41,37 +46,44 @@ func (s *store) unpack(ctx context.Context) (err error) {
 	)
 	defer p.Finish()
 
+	eg, ctx := errgroup.WithContext(ctx)
+	eg.SetLimit(packWorkers)
+
 	for _, entryPath := range inlinedTree.Keys() {
-		secretData, err2 := s.get(ctx, entryPath, maybe.NewNone[string]())
-		if err2 != nil {
-			return err2
-		}
-
-		var rawSecret RawSecret
-		if len(secretData) == 1 && secretData[0].Default {
-			rawSecret.Data = maybe.NewJust(secretData[0].Payload)
-		} else {
-			res := make(map[string][]byte, len(secretData))
-			for _, secret := range secretData {
-				res[secret.Name] = secret.Payload
+		eg.Go(func() error {
+			secretData, err2 := s.get(ctx, entryPath, maybe.NewNone[string]())
+			if err2 != nil {
+				return err2
 			}
-			rawSecret.Payload = maybe.NewJust(res)
-		}
 
-		data, err2 := s.secretSerializer.RawSerialize(rawSecret)
-		if err2 != nil {
-			return errors.Wrap(err2, "failed to serialize secret")
-		}
+			var rawSecret RawSecret
+			if len(secretData) == 1 && secretData[0].Default {
+				rawSecret.Data = maybe.NewJust(secretData[0].Payload)
+			} else {
+				res := make(map[string][]byte, len(secretData))
+				for _, secret := range secretData {
+					res[secret.Name] = secret.Payload
+				}
+				rawSecret.Payload = maybe.NewJust(res)
+			}
 
-		err2 = s.storage.Store(ctx, entryPath, data)
-		if err2 != nil {
-			return errors.Wrapf(err2, "failed to store secret %s", entryPath)
-		}
+			data, err2 := s.secretSerializer.RawSerialize(rawSecret)
+			if err2 != nil {
+				return errors.Wrap(err2, "failed to serialize secret")
+			}
 
-		p.Inc()
+			err2 = s.storage.Store(ctx, entryPath, data)
+			if err2 != nil {
+				return errors.Wrapf(err2, "failed to store secret %s", entryPath)
+			}
+
+			p.Inc()
+
+			return nil
+		})
 	}
 
-	return err
+	return eg.Wait()
 }
 
 func (s *store) pack(ctx context.Context) error {
@@ -95,19 +107,26 @@ func (s *store) pack(ctx context.Context) error {
 	)
 	defer p.Finish()
 
-	for _, entryPath := range inlinedTree.Keys() {
-		err = s.packSecret(ctx, entryPath)
-		if err != nil {
-			return errors.Wrapf(err, "failed to pack secret %s", entryPath)
-		}
+	eg, ctx := errgroup.WithContext(ctx)
+	eg.SetLimit(packWorkers)
 
-		p.Inc()
+	for _, entryPath := range inlinedTree.Keys() {
+		eg.Go(func() error {
+			err = s.packSecret(ctx, entryPath)
+			if err != nil {
+				return errors.Wrapf(err, "failed to pack secret %s", entryPath)
+			}
+
+			p.Inc()
+
+			return nil
+		})
 	}
 
 	// packing store back may introduce changes in objects
 	s.operations.add(packOperation())
 
-	return nil
+	return eg.Wait()
 }
 
 func (s *store) packSecret(ctx context.Context, entryPath string) (err error) {

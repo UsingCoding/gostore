@@ -103,10 +103,11 @@ func (m *manager) Use(_ context.Context, p string) (storage.Storage, error) {
 		return nil, errors.Wrap(err, "failed to open repo")
 	}
 
-	return &gitStorage{
+	g := &gitStorage{
 		repo:    repo,
 		repoDir: p,
-	}, nil
+	}
+	return newSyncGit(g), nil
 }
 
 func (m *manager) Remove(ctx context.Context, p string) error {
@@ -135,10 +136,11 @@ func (m *manager) initGitStorage(p string, remote maybe.Maybe[string]) (storage.
 		}
 	}
 
-	return &gitStorage{
+	g := &gitStorage{
 		repo:    repo,
 		repoDir: p,
-	}, nil
+	}
+	return newSyncGit(g), nil
 }
 
 func (m *manager) cloneGitStorage(ctx context.Context, p, remote string) (storage.Storage, error) {
@@ -156,10 +158,11 @@ func (m *manager) cloneGitStorage(ctx context.Context, p, remote string) (storag
 		return nil, errors.Wrap(err, "failed to clone store repo")
 	}
 
-	return &gitStorage{
+	g := &gitStorage{
 		repo:    repo,
 		repoDir: p,
-	}, nil
+	}
+	return newSyncGit(g), nil
 }
 
 func exists(p string) (bool, error) {

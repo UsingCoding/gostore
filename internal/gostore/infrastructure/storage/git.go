@@ -56,16 +56,6 @@ func (storage *gitStorage) Store(_ context.Context, p string, data []byte) error
 		return errors.Wrapf(err, "failed to write file to %s", fullPath)
 	}
 
-	worktree, err := storage.repo.Worktree()
-	if err != nil {
-		return errors.WithStack(err)
-	}
-
-	_, err = worktree.Add(p)
-	if err != nil {
-		return errors.Wrapf(err, "failed to add file to git index: %s", fullPath)
-	}
-
 	return nil
 }
 
