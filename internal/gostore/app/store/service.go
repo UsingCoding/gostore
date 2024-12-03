@@ -142,39 +142,48 @@ func (service *storeService) Clone(ctx context.Context, params CloneParams) erro
 	return errors.Wrap(err, "failed to clone repo")
 }
 
-func (service *storeService) Add(ctx context.Context, params AddParams) error {
+func (service *storeService) Add(ctx context.Context, params AddParams) (err error) {
 	s, err := service.loadStore(ctx, params.CommonParams)
 	if err != nil {
 		return errors.Wrap(err, "failed to load store")
 	}
-	defer s.close()
+	defer func() {
+		err = stderrors.Join(err, s.close())
+	}()
 
-	return s.add(
+	err = s.add(
 		ctx,
 		params.Path,
 		params.Key,
 		params.Data,
 	)
+	return err
 }
 
-func (service *storeService) Copy(ctx context.Context, params CopyParams) error {
+func (service *storeService) Copy(ctx context.Context, params CopyParams) (err error) {
 	s, err := service.loadStore(ctx, params.CommonParams)
 	if err != nil {
 		return errors.Wrap(err, "failed to load store")
 	}
-	defer s.close()
+	defer func() {
+		err = stderrors.Join(err, s.close())
+	}()
 
-	return s.copy(ctx, params.Src, params.Dst)
+	err = s.copy(ctx, params.Src, params.Dst)
+	return err
 }
 
-func (service *storeService) Move(ctx context.Context, params MoveParams) error {
+func (service *storeService) Move(ctx context.Context, params MoveParams) (err error) {
 	s, err := service.loadStore(ctx, params.CommonParams)
 	if err != nil {
 		return errors.Wrap(err, "failed to load store")
 	}
-	defer s.close()
+	defer func() {
+		err = stderrors.Join(err, s.close())
+	}()
 
-	return s.move(ctx, params.Src, params.Dst)
+	err = s.move(ctx, params.Src, params.Dst)
+	return err
 }
 
 func (service *storeService) Get(ctx context.Context, params GetParams) ([]SecretData, error) {
@@ -191,27 +200,31 @@ func (service *storeService) List(ctx context.Context, params ListParams) (stora
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to load store")
 	}
-	defer s.close()
 
 	return s.list(ctx, params.Path)
 }
 
-func (service *storeService) Remove(ctx context.Context, params RemoveParams) error {
+func (service *storeService) Remove(ctx context.Context, params RemoveParams) (err error) {
 	s, err := service.loadStore(ctx, params.CommonParams)
 	if err != nil {
 		return errors.Wrap(err, "failed to load store")
 	}
-	defer s.close()
+	defer func() {
+		err = stderrors.Join(err, s.close())
+	}()
 
-	return s.remove(ctx, params.Path, params.Key)
+	err = s.remove(ctx, params.Path, params.Key)
+	return err
 }
 
-func (service *storeService) Unpack(ctx context.Context, params CommonParams) error {
+func (service *storeService) Unpack(ctx context.Context, params CommonParams) (err error) {
 	s, err := service.loadStore(ctx, params)
 	if err != nil {
 		return errors.Wrap(err, "failed to load store")
 	}
-	defer s.close()
+	defer func() {
+		err = stderrors.Join(err, s.close())
+	}()
 
 	err = s.unpack(ctx)
 	if err == nil {
@@ -221,12 +234,14 @@ func (service *storeService) Unpack(ctx context.Context, params CommonParams) er
 	return err
 }
 
-func (service *storeService) Pack(ctx context.Context, params CommonParams) error {
+func (service *storeService) Pack(ctx context.Context, params CommonParams) (err error) {
 	s, err := service.loadStore(ctx, params)
 	if err != nil {
 		return errors.Wrap(err, "failed to load store")
 	}
-	defer s.close()
+	defer func() {
+		err = stderrors.Join(err, s.close())
+	}()
 
 	err = s.pack(ctx)
 	if err == nil {
