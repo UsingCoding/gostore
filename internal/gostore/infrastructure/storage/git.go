@@ -289,6 +289,13 @@ func (storage *gitStorage) Commit(_ context.Context, msg string) error {
 		return errors.WithStack(err)
 	}
 
+	err = worktree.AddWithOptions(&git.AddOptions{
+		All: true,
+	})
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
 	status, err := worktree.Status()
 	if err != nil {
 		return errors.Wrap(err, "failed to get worktree status")
