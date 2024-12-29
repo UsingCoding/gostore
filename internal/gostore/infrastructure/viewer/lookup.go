@@ -7,22 +7,24 @@ import (
 	"github.com/pkg/errors"
 )
 
-func appForView() (string, error) {
-	var name string
-
+func appForView() (args []string, wait bool, err error) {
 	switch runtime.GOOS {
 	case "linux":
-		name = "xdg-open"
+		args = []string{"xdg-open"}
+	case "darwin":
+		args = []string{"open", "-W", "-n"}
+		wait = true
 	default:
-		return "", errors.Errorf("unknown app view for %s can be used", runtime.GOOS)
+		return args, wait, errors.Errorf("unknown app view for %s can be used", runtime.GOOS)
 	}
 
-	path := lookupAny(name)
+	path := lookupAny(args[0])
 	if path == "" {
-		return "", errors.Errorf("cannot find apps for view, tried %s", path)
+		return args, wait, errors.Errorf("cannot find apps for view, tried %s", path)
 	}
+	args[0] = path
 
-	return path, nil
+	return args, wait, err
 }
 func lookupAny(editorNames ...string) string {
 	for _, editorName := range editorNames {

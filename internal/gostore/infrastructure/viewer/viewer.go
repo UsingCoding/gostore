@@ -5,28 +5,29 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"time"
 
+	"github.com/UsingCoding/gostore/internal/common/slices"
 	"github.com/pkg/errors"
 
 	"github.com/UsingCoding/gostore/internal/gostore/app/view"
 )
 
 func NewViewer() (view.Viewer, error) {
-	cmd, err := appForView()
+	args, wait, err := appForView()
 	if err != nil {
 		return nil, err
 	}
 
-	return &viewer{cmd: cmd}, nil
+	return &viewer{args: args, wait: wait}, nil
 }
 
 type viewer struct {
-	cmd string
+	args []string
+	wait bool
 }
 
-func (v *viewer) View(_ context.Context, p string, data []byte) error {
-	// Create temporary file for editing
+func (v viewer) View(_ context.Context, p string, data []byte) error {
+	// Create temporary file for viewing
 	tmpdir, err := os.MkdirTemp("", "")
 	if err != nil {
 		return errors.Wrap(err, "failed to create temp dir for editing")
@@ -58,14 +59,19 @@ func (v *viewer) View(_ context.Context, p string, data []byte) error {
 		return err
 	}
 
-	time.Sleep(time.Second * 2)
+	// v.wait means that view app waits until user close it, so we can remove tmp files
+	if v.wait {
+		_ = os.Remove(tmpFilePath)
+	}
 
 	return nil
 }
 
-func (v *viewer) run(p string) error {
+func (v viewer) run(p string) error {
+	cmdName, args := slices.Decompose(v.args)
+
 	//nolint:gosec
-	cmd := exec.Command(v.cmd, p)
+	cmd := exec.Command(cmdName, append(args, p)...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
