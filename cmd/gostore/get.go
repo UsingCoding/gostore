@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/UsingCoding/gostore/internal/gostore/infrastructure/consoleoutput"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
 
@@ -38,6 +39,8 @@ func executeGet(ctx *cli.Context) error {
 		key = maybe.NewJust(ctx.Args().Get(1))
 	}
 
+	o := consoleoutput.New(os.Stdout, consoleoutput.WithNewline(true))
+
 	service, _ := newStoreService(ctx)
 
 	secretsData, err := service.Get(ctx.Context, store.GetParams{
@@ -56,20 +59,20 @@ func executeGet(ctx *cli.Context) error {
 	// if there is only one data in secret print it without kv formatting
 	if len(secretsData) == 1 && secretsData[0].Default {
 		s := secretsData[0]
-		_, _ = os.Stdout.Write(s.Payload)
+		o.Printf(string(s.Payload))
 		return nil
 	}
 
 	// there is request for specific key in secret, print it without kv formatting
 	if maybe.Valid(key) {
 		s := secretsData[0]
-		_, _ = os.Stdout.Write(s.Payload)
+		o.Printf(string(s.Payload))
 		return nil
 	}
 
 	for _, data := range secretsData {
 		msg := fmt.Sprintf("%s: %s", data.Name, data.Payload)
-		_, _ = os.Stdout.WriteString(msg)
+		o.Printf(msg)
 	}
 
 	return nil

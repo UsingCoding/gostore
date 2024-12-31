@@ -18,9 +18,10 @@ import (
 
 func list() *cli.Command {
 	return &cli.Command{
-		Name:   "ls",
-		Usage:  "List secrets in current store",
-		Action: executeList,
+		Name:    "list",
+		Aliases: []string{"ls", "la"},
+		Usage:   "List secrets in current store",
+		Action:  executeList,
 	}
 }
 
