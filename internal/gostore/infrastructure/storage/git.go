@@ -239,7 +239,7 @@ func (storage *gitStorage) HasRemote(context.Context) (bool, error) {
 }
 
 func (storage *gitStorage) Push(ctx context.Context) error {
-	p := defaultProgress(ctx)
+	p := defaultProgress(ctx).Alter(progress.WithDescription("Pushing store"))
 	defer p.Finish()
 
 	err := storage.repo.PushContext(ctx, &git.PushOptions{
@@ -254,13 +254,17 @@ func (storage *gitStorage) Push(ctx context.Context) error {
 }
 
 func (storage *gitStorage) Pull(ctx context.Context) error {
-	p := defaultProgress(ctx)
-	defer p.Finish()
+	// enclose fetching in function to correct defer behavior
 
-	err := storage.repo.FetchContext(ctx, &git.FetchOptions{
-		RemoteName: remoteName,
-		Progress:   p,
-	})
+	err := func() error {
+		p := defaultProgress(ctx).Alter(progress.WithDescription("Fetching store"))
+		defer p.Finish()
+
+		return storage.repo.FetchContext(ctx, &git.FetchOptions{
+			RemoteName: remoteName,
+			Progress:   p,
+		})
+	}()
 	if err != nil {
 		if errors.Is(err, git.NoErrAlreadyUpToDate) {
 			return nil
@@ -273,12 +277,12 @@ func (storage *gitStorage) Pull(ctx context.Context) error {
 		return errors.WithStack(err)
 	}
 
-	p = defaultProgress(ctx)
-	defer p.Finish()
+	p2 := defaultProgress(ctx).Alter(progress.WithDescription("Pulling store"))
+	defer p2.Finish()
 
 	err = worktree.PullContext(ctx, &git.PullOptions{
 		RemoteName: remoteName,
-		Progress:   p,
+		Progress:   p2,
 	})
 	return errors.Wrap(err, "failed to pull from repo")
 }
@@ -393,7 +397,7 @@ func (storage *gitStorage) getLastCommit(p maybe.Maybe[string]) (*object.Commit,
 
 func defaultProgress(ctx context.Context) progress.Progress {
 	return progress.FromCtx(ctx).Alter(
-		progress.WithDescription("Packing store"),
+		progress.WithDescription("Manipulating with Git"),
 		progress.WithBytes(true),
 		progress.WithSpinnerType(11),
 	)
