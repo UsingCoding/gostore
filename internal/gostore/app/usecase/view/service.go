@@ -16,7 +16,7 @@ var (
 )
 
 type Service interface {
-	View(ctx context.Context, p string, key maybe.Maybe[string]) error
+	View(ctx context.Context, index store.SecretIndex) error
 }
 
 func NewService(s appservice.Service, viewer Viewer) Service {
@@ -28,28 +28,28 @@ type service struct {
 	viewer  Viewer
 }
 
-func (s *service) View(ctx context.Context, p string, key maybe.Maybe[string]) error {
+func (s *service) View(ctx context.Context, index store.SecretIndex) error {
 	data, err := s.service.Get(ctx, store.GetParams{
-		Path: p,
+		SecretIndex: index,
 	})
 	if err != nil {
 		return err
 	}
 
 	if len(data) == 0 {
-		return errors.Wrap(ErrSecretNotFound, p)
+		return errors.Wrap(ErrSecretNotFound, index.Path)
 	}
 
 	var secret maybe.Maybe[store.SecretData]
 	//nolint:nestif
-	if maybe.Valid(key) {
+	if maybe.Valid(index.Key) {
 		for _, d := range data {
-			if d.Name == maybe.Just(key) {
+			if d.Name == maybe.Just(index.Key) {
 				secret = maybe.NewJust(d)
 			}
 		}
 		if !maybe.Valid(secret) {
-			return errors.Errorf("key %s not found in %s", maybe.Just(key), p)
+			return errors.Errorf("key %s not found in %s", maybe.Just(index.Key), index.Path)
 		}
 	} else {
 		for _, d := range data {
@@ -58,14 +58,14 @@ func (s *service) View(ctx context.Context, p string, key maybe.Maybe[string]) e
 			}
 		}
 		if !maybe.Valid(secret) {
-			return errors.Errorf("no default record found in %s", p)
+			return errors.Errorf("no default record found in %s", index.Path)
 		}
 	}
 
 	sec := maybe.Just(secret)
-	pathForView := p
+	pathForView := index.Path
 	if !sec.Default {
-		pathForView = p + sec.Name
+		pathForView = index.Path + sec.Name
 	}
 
 	return s.viewer.View(ctx, pathForView, sec.Payload)

@@ -7,9 +7,8 @@ import (
 	"path"
 
 	"github.com/UsingCoding/gostore/internal/common/slices"
+	"github.com/UsingCoding/gostore/internal/gostore/app/usecase/view"
 	"github.com/pkg/errors"
-
-	"github.com/UsingCoding/gostore/internal/gostore/app/view"
 )
 
 func NewViewer() (view.Viewer, error) {

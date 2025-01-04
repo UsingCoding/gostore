@@ -1,11 +1,12 @@
 package main
 
 import (
+	"github.com/UsingCoding/gostore/internal/gostore/app/store"
+	appview "github.com/UsingCoding/gostore/internal/gostore/app/usecase/view"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
 
 	"github.com/UsingCoding/gostore/internal/common/maybe"
-	appview "github.com/UsingCoding/gostore/internal/gostore/app/view"
 	"github.com/UsingCoding/gostore/internal/gostore/infrastructure/viewer"
 )
 
@@ -50,7 +51,9 @@ func executeView(ctx *cli.Context) error {
 	return appview.NewService(s, v).
 		View(
 			ctx.Context,
-			path,
-			key,
+			store.SecretIndex{
+				Path: path,
+				Key:  key,
+			},
 		)
 }

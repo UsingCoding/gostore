@@ -11,7 +11,7 @@ import (
 )
 
 type Service interface {
-	Edit(ctx context.Context, path string, key maybe.Maybe[string]) error
+	Edit(ctx context.Context, index store.SecretIndex) error
 }
 
 func NewService(s appservice.Service, editor Editor) Service {
@@ -23,9 +23,9 @@ type service struct {
 	editor  Editor
 }
 
-func (s *service) Edit(ctx context.Context, p string, key maybe.Maybe[string]) error {
+func (s *service) Edit(ctx context.Context, index store.SecretIndex) error {
 	data, err := s.service.Get(ctx, store.GetParams{
-		Path: p,
+		SecretIndex: index,
 	})
 	if err != nil {
 		return err
@@ -33,21 +33,20 @@ func (s *service) Edit(ctx context.Context, p string, key maybe.Maybe[string]) e
 
 	var payload []byte
 	if len(data) != 0 {
-		payload, err = payloadFromData(data, p, key)
+		payload, err = payloadFromData(data, index.Path, index.Key)
 		if err != nil {
 			return err
 		}
 	}
 
-	edited, err := s.editor.Edit(ctx, p, payload)
+	edited, err := s.editor.Edit(ctx, index.Path, payload)
 	if err != nil {
 		return err
 	}
 
 	return s.service.Add(ctx, store.AddParams{
-		Path: p,
-		Key:  key,
-		Data: edited,
+		SecretIndex: index,
+		Data:        edited,
 	})
 }
 

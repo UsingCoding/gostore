@@ -36,7 +36,7 @@ func TestSecretCRUD(t *testing.T) {
 		})
 		assert.NoError(t, err2)
 
-		resp, err2 := s.gostore().Read(api.ReadRequest{
+		resp, err2 := s.gostore().Get(api.ReadRequest{
 			Path: path,
 		})
 		assert.NoError(t, err2)
@@ -74,12 +74,12 @@ func TestSecretCRUD(t *testing.T) {
 		})
 		assert.NoError(t, err2)
 
-		resp1, err2 := s.gostore().Read(api.ReadRequest{
+		resp1, err2 := s.gostore().Get(api.ReadRequest{
 			Path: path,
 		})
 		assert.NoError(t, err2)
 
-		resp2, err2 := s.gostore().Read(api.ReadRequest{
+		resp2, err2 := s.gostore().Get(api.ReadRequest{
 			Path: dstP,
 		})
 		assert.NoError(t, err2)
@@ -108,12 +108,12 @@ func TestSecretCRUD(t *testing.T) {
 		})
 		assert.NoError(t, err2)
 
-		_, err2 = s.gostore().Read(api.ReadRequest{
+		_, err2 = s.gostore().Get(api.ReadRequest{
 			Path: path,
 		})
 		assert.Error(t, err2)
 
-		resp2, err2 := s.gostore().Read(api.ReadRequest{
+		resp2, err2 := s.gostore().Get(api.ReadRequest{
 			Path: dstP,
 		})
 		assert.NoError(t, err2)

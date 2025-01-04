@@ -3,11 +3,12 @@ package main
 import (
 	"os"
 
+	"github.com/UsingCoding/gostore/internal/gostore/app/store"
+	appedit "github.com/UsingCoding/gostore/internal/gostore/app/usecase/edit"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
 
 	"github.com/UsingCoding/gostore/internal/common/maybe"
-	appedit "github.com/UsingCoding/gostore/internal/gostore/app/edit"
 	"github.com/UsingCoding/gostore/internal/gostore/infrastructure/consoleoutput"
 	"github.com/UsingCoding/gostore/internal/gostore/infrastructure/editor"
 )
@@ -48,7 +49,10 @@ func executeEdit(ctx *cli.Context) error {
 
 	o := consoleoutput.New(os.Stdout, consoleoutput.WithNewline(true))
 
-	err = appedit.NewService(s, e).Edit(ctx.Context, path, key)
+	err = appedit.NewService(s, e).Edit(ctx.Context, store.SecretIndex{
+		Path: path,
+		Key:  key,
+	})
 	if errors.Is(err, appedit.ErrNoChangesMade) {
 		o.Printf("No changes made")
 		return nil

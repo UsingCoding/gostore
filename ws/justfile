@@ -1,0 +1,18 @@
+gostoreBasePath := join(justfile_directory(), ".gostore")
+
+play $GOSTORE_STORE_BASE_PATH=gostoreBasePath: _init
+    zsh
+
+clean:
+    rm -rf {{gostoreBasePath}}
+
+_init $GOSTORE_STORE_BASE_PATH=gostoreBasePath:
+    #!/usr/bin/env sh
+    if [[ -d "{{gostoreBasePath}}" ]]; then
+      echo "Already init: do nothing"
+      exit 0
+    fi
+
+    mkdir -p {{gostoreBasePath}}
+    gostore init --id main
+

@@ -11,6 +11,9 @@ import (
 
 	"github.com/urfave/cli/v2"
 
+	"github.com/UsingCoding/gostore/cmd/gostore/totp"
+	clipkg "github.com/UsingCoding/gostore/internal/cli"
+
 	"github.com/UsingCoding/gostore/internal/common/errors"
 	"github.com/UsingCoding/gostore/internal/gostore/app/output"
 	"github.com/UsingCoding/gostore/internal/gostore/app/progress"
@@ -67,6 +70,8 @@ func runApp(ctx context.Context, args []string) error {
 		EnableBashCompletion: true,
 		Action:               repl,
 		Before: func(c *cli.Context) error {
+			clipkg.ContainerCtx(c)
+
 			err = initProgress(c)
 			if err != nil {
 				return err
@@ -91,6 +96,7 @@ func runApp(ctx context.Context, args []string) error {
 			rollback(),
 			contextcmd.Context(),
 			identitycmd.Identity(),
+			totp.TOTP(),
 			completion(),
 			mount(),
 		},

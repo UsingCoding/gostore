@@ -6,7 +6,6 @@ import (
 
 	"github.com/UsingCoding/gostore/internal/gostore/app/store"
 	"github.com/UsingCoding/gostore/internal/gostore/infrastructure/consoleoutput"
-
 	"github.com/urfave/cli/v2"
 
 	"github.com/UsingCoding/gostore/data"

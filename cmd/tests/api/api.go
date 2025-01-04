@@ -19,7 +19,7 @@ type API interface {
 	Init(req InitRequest) error
 
 	Add(req AddRequest) error
-	Read(req ReadRequest) (ReadResponse, error)
+	Get(req ReadRequest) (ReadResponse, error)
 	Remove(req RemoveRequest) error
 	List(req ListRequest) (ListResponse, error)
 
@@ -81,7 +81,7 @@ func (a api) Add(req AddRequest) error {
 	return err
 }
 
-func (a api) Read(req ReadRequest) (ReadResponse, error) {
+func (a api) Get(req ReadRequest) (ReadResponse, error) {
 	args := []string{
 		"cat",
 		req.Path,

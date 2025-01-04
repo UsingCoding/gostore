@@ -11,6 +11,19 @@ type CommonParams struct {
 	StoreID   maybe.Maybe[string]
 }
 
+type SecretIndex struct {
+	Path string
+	Key  maybe.Maybe[string]
+}
+
+func (q SecretIndex) String() string {
+	s := q.Path
+	if k, ok := maybe.JustValid(q.Key); ok {
+		s += "->" + k
+	}
+	return s
+}
+
 type InitParams struct {
 	CommonParams
 
@@ -37,9 +50,7 @@ type InitRes struct {
 
 type AddParams struct {
 	CommonParams
-
-	Path string
-	Key  maybe.Maybe[string]
+	SecretIndex
 
 	Data []byte
 }
@@ -60,9 +71,7 @@ type MoveParams struct {
 
 type GetParams struct {
 	CommonParams
-
-	Path string
-	Key  maybe.Maybe[string]
+	SecretIndex
 }
 
 type ListParams struct {

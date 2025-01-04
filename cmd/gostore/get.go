@@ -3,10 +3,12 @@ package main
 import (
 	"fmt"
 	"os"
+	"syscall"
 
 	"github.com/UsingCoding/gostore/internal/gostore/infrastructure/consoleoutput"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
+	"golang.org/x/term"
 
 	"github.com/UsingCoding/gostore/internal/common/maybe"
 	"github.com/UsingCoding/gostore/internal/gostore/app/store"
@@ -39,14 +41,21 @@ func executeGet(ctx *cli.Context) error {
 		key = maybe.NewJust(ctx.Args().Get(1))
 	}
 
-	o := consoleoutput.New(os.Stdout, consoleoutput.WithNewline(true))
+	var opts []consoleoutput.Opt
+	if term.IsTerminal(syscall.Stdin) {
+		opts = append(opts, consoleoutput.WithNewline(true))
+	}
+
+	o := consoleoutput.New(os.Stdout, opts...)
 
 	service, _ := newStoreService(ctx)
 
 	secretsData, err := service.Get(ctx.Context, store.GetParams{
 		CommonParams: makeCommonParams(ctx),
-		Path:         path,
-		Key:          key,
+		SecretIndex: store.SecretIndex{
+			Path: path,
+			Key:  key,
+		},
 	})
 	if err != nil {
 		return err

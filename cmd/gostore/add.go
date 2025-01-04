@@ -5,12 +5,13 @@ import (
 	stdos "os"
 	"syscall"
 
-	"github.com/UsingCoding/gostore/internal/common/maybe"
-	"github.com/UsingCoding/gostore/internal/gostore/app/store"
-	"github.com/UsingCoding/gostore/internal/gostore/infrastructure/consoleoutput"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
 	"golang.org/x/term"
+
+	"github.com/UsingCoding/gostore/internal/common/maybe"
+	"github.com/UsingCoding/gostore/internal/gostore/app/store"
+	"github.com/UsingCoding/gostore/internal/gostore/infrastructure/consoleoutput"
 )
 
 func add() *cli.Command {
@@ -66,8 +67,10 @@ func executeAdd(ctx *cli.Context) error {
 
 	return service.Add(ctx.Context, store.AddParams{
 		CommonParams: makeCommonParams(ctx),
-		Path:         path,
-		Key:          key,
-		Data:         data,
+		SecretIndex: store.SecretIndex{
+			Path: path,
+			Key:  key,
+		},
+		Data: data,
 	})
 }

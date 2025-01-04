@@ -24,7 +24,7 @@ type File struct {
 
 func (f *File) Attr(ctx context.Context, a *fuse.Attr) error {
 	data, err := f.r.service.Get(ctx, store.GetParams{
-		Path: f.path,
+		SecretIndex: store.SecretIndex{Path: f.path},
 	})
 	if err != nil {
 		return err
@@ -46,7 +46,7 @@ func (f *File) Attr(ctx context.Context, a *fuse.Attr) error {
 
 func (f *File) ReadAll(ctx context.Context) ([]byte, error) {
 	data, err := f.r.service.Get(ctx, store.GetParams{
-		Path: f.path,
+		SecretIndex: store.SecretIndex{Path: f.path},
 	})
 	if err != nil {
 		return nil, err
@@ -84,8 +84,8 @@ func (f *File) Write(_ context.Context, req *fuse.WriteRequest, resp *fuse.Write
 func (f *File) Flush(ctx context.Context, _ *fuse.FlushRequest) error {
 	if len(f.buffer) > 0 {
 		err := f.r.service.Add(ctx, store.AddParams{
-			Path: f.path,
-			Data: f.buffer,
+			SecretIndex: store.SecretIndex{Path: f.path},
+			Data:        f.buffer,
 		})
 		if err != nil {
 			return errors.Wrap(err, "failed to save file")
