@@ -3,11 +3,10 @@ module github.com/UsingCoding/gostore
 go 1.22
 
 require (
-	filippo.io/age v1.1.1
+	filippo.io/age v1.2.1
 	github.com/UsingCoding/fpgo v0.0.3
-	github.com/anacrolix/fuse v0.3.1
+	github.com/anacrolix/fuse v0.4.0
 	github.com/anmitsu/go-shlex v0.0.0-20200514113438-38f4b401e2be
-	github.com/ergochat/readline v0.0.6
 	github.com/fatih/color v1.16.0
 	github.com/go-git/go-git/v5 v5.12.0
 	github.com/gofrs/uuid/v5 v5.3.0
@@ -19,7 +18,7 @@ require (
 	github.com/urfave/cli/v2 v2.27.1
 	github.com/xlab/treeprint v1.2.0
 	golang.org/x/sync v0.7.0
-	golang.org/x/term v0.24.0
+	golang.org/x/term v0.27.0
 )
 
 require (
@@ -49,11 +48,10 @@ require (
 	github.com/skeema/knownhosts v1.2.2 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
-	golang.org/x/crypto v0.24.0 // indirect
+	golang.org/x/crypto v0.31.0 // indirect
 	golang.org/x/mod v0.18.0 // indirect
-	golang.org/x/net v0.26.0 // indirect
-	golang.org/x/sys v0.25.0 // indirect
-	golang.org/x/text v0.16.0 // indirect
+	golang.org/x/net v0.33.0 // indirect
+	golang.org/x/sys v0.28.0 // indirect
 	golang.org/x/tools v0.22.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

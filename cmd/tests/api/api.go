@@ -17,6 +17,7 @@ const (
 // API defines api for gostore cli
 type API interface {
 	Init(req InitRequest) error
+	Clone(req CloneRequest) error
 
 	Add(req AddRequest) error
 	Get(req ReadRequest) (ReadResponse, error)
@@ -41,6 +42,7 @@ type api struct {
 
 func (a api) Init(req InitRequest) error {
 	args := []string{
+		"store",
 		"init",
 		"--id",
 		req.ID,
@@ -58,6 +60,22 @@ func (a api) Init(req InitRequest) error {
 	_, err := a.gostore(input{
 		args:  args,
 		stdin: nil,
+	})
+
+	return err
+}
+
+func (a api) Clone(req CloneRequest) error {
+	args := []string{
+		"store",
+		"clone",
+		"--id",
+		req.ID,
+		req.Remote,
+	}
+
+	_, err := a.gostore(input{
+		args: args,
 	})
 
 	return err

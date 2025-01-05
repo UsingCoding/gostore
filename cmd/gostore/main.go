@@ -11,34 +11,17 @@ import (
 
 	"github.com/urfave/cli/v2"
 
-	"github.com/UsingCoding/gostore/cmd/gostore/totp"
-	clipkg "github.com/UsingCoding/gostore/internal/cli"
+	"github.com/UsingCoding/gostore/internal/cli/cmd/app"
+	"github.com/UsingCoding/gostore/internal/cli/cmd/core"
+	"github.com/UsingCoding/gostore/internal/cli/cmd/identity"
+	"github.com/UsingCoding/gostore/internal/cli/cmd/mgnt"
+	"github.com/UsingCoding/gostore/internal/cli/cmd/store"
+	"github.com/UsingCoding/gostore/internal/cli/cmd/totp"
+	"github.com/UsingCoding/gostore/internal/common/slices"
 
 	"github.com/UsingCoding/gostore/internal/common/errors"
-	"github.com/UsingCoding/gostore/internal/gostore/app/output"
-	"github.com/UsingCoding/gostore/internal/gostore/app/progress"
-	"github.com/UsingCoding/gostore/internal/gostore/app/store"
 	"github.com/UsingCoding/gostore/internal/gostore/app/verbose"
 	"github.com/UsingCoding/gostore/internal/gostore/infrastructure/consoleoutput"
-
-	contextcmd "github.com/UsingCoding/gostore/cmd/gostore/context"
-	identitycmd "github.com/UsingCoding/gostore/cmd/gostore/identity"
-	"github.com/UsingCoding/gostore/internal/common/maybe"
-	"github.com/UsingCoding/gostore/internal/gostore/app/config"
-	"github.com/UsingCoding/gostore/internal/gostore/app/service"
-	infraconfig "github.com/UsingCoding/gostore/internal/gostore/infrastructure/config"
-	"github.com/UsingCoding/gostore/internal/gostore/infrastructure/encryption"
-	"github.com/UsingCoding/gostore/internal/gostore/infrastructure/storage"
-	infrastore "github.com/UsingCoding/gostore/internal/gostore/infrastructure/store"
-)
-
-const (
-	appID = "gostore"
-)
-
-var (
-	version = "dev"
-	commit  = "none"
 )
 
 func main() {
@@ -61,45 +44,22 @@ func runApp(ctx context.Context, args []string) error {
 		return err
 	}
 
-	app := &cli.App{
-		Name:    appID,
-		Version: version,
+	a := &cli.App{
+		Name:    app.ID,
+		Version: app.Version,
 		// do not use built-in version flag
 		HideVersion:          true,
 		Usage:                "Secrets store manager",
 		EnableBashCompletion: true,
-		Action:               repl,
-		Before: func(c *cli.Context) error {
-			clipkg.ContainerCtx(c)
-
-			err = initProgress(c)
-			if err != nil {
-				return err
-			}
-			return initOutput(c)
-		},
-		Commands: []*cli.Command{
-			versionCmd(),
-			initCmd(),
-			clone(),
-			add(),
-			get(),
-			edit(),
-			view(),
-			move(),
-			copyCmd(),
-			list(),
-			remove(),
-			unpack(),
-			pack(),
-			sync(),
-			rollback(),
-			contextcmd.Context(),
-			identitycmd.Identity(),
+		Before:               BeforeHook,
+		Commands: slices.Merge(
+			app.Main(),
+			core.Main(),
+			mgnt.Main(),
+			identity.Identity(),
+			store.Store(),
 			totp.TOTP(),
-			completion(),
-			mount(),
-		},
+		),
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:  "gostore-base-path",
@@ -166,7 +126,7 @@ func runApp(ctx context.Context, args []string) error {
 		},
 	}
 
-	return app.RunContext(ctx, args)
+	return a.RunContext(ctx, args)
 }
 
 func subscribeForKillSignals(ctx context.Context) context.Context {
@@ -185,64 +145,6 @@ func subscribeForKillSignals(ctx context.Context) context.Context {
 	}()
 
 	return ctx
-}
-
-func newStoreService(ctx *cli.Context) (s service.Service, c config.Service) {
-	gostoreBaseDir := ctx.String("gostore-base-path")
-
-	storageManager := storage.NewManager()
-	c = config.NewService(
-		infraconfig.NewStorage(gostoreBaseDir),
-		gostoreBaseDir,
-		storageManager,
-		encryption.NewManager(),
-	)
-	s = service.NewService(
-		c,
-		storageManager,
-		encryption.NewManager(),
-		infrastore.NewManifestSerializer(),
-		infrastore.NewSecretSerializer(),
-	)
-
-	return s, c
-}
-
-func makeCommonParams(ctx *cli.Context) store.CommonParams {
-	return store.CommonParams{
-		StorePath: maybe.Maybe[string]{},
-		StoreID:   optStringFromCtx(ctx, "store-id"),
-	}
-}
-
-func initProgress(c *cli.Context) error {
-	p, err := progress.Init(progress.Mode(c.String("progress")))
-	if err != nil {
-		return err
-	}
-
-	c.Context = progress.ToCtx(c.Context, p)
-
-	return nil
-}
-
-func initOutput(c *cli.Context) error {
-	ctx, err := output.InitToCtx(c.Context, c.String("output"))
-	if err != nil {
-		return err
-	}
-
-	c.Context = ctx
-	return nil
-}
-
-func optStringFromCtx(ctx *cli.Context, key string) maybe.Maybe[string] {
-	v := ctx.String(key)
-	if v == "" {
-		return maybe.Maybe[string]{}
-	}
-
-	return maybe.NewJust(v)
 }
 
 func printStackTraces(traces []errors.Trace) {

@@ -4,7 +4,6 @@ import (
 	"context"
 	"path"
 
-	appservice "github.com/UsingCoding/gostore/internal/gostore/app/service"
 	"github.com/UsingCoding/gostore/internal/gostore/app/store"
 )
 
@@ -13,12 +12,12 @@ type Service interface {
 	Passcode(ctx context.Context, name string) (string, error)
 }
 
-func NewService(s appservice.Service) Service {
+func NewService(s store.Service) Service {
 	return &service{service: s}
 }
 
 type service struct {
-	service appservice.Service
+	service store.Service
 }
 
 const (

@@ -14,5 +14,5 @@ _init $GOSTORE_STORE_BASE_PATH=gostoreBasePath:
     fi
 
     mkdir -p {{gostoreBasePath}}
-    gostore init --id main
+    gostore store init --id main
 

@@ -24,11 +24,17 @@ func (q SecretIndex) String() string {
 	return s
 }
 
+type WriteManifestParams struct {
+	Recipients  []encryption.Recipient
+	Encryption  encryption.Encryption
+	StorageType storage.Type
+}
+
 type InitParams struct {
 	CommonParams
 
-	// if there is no key passed new one will be created
 	Recipients []encryption.Recipient
+	Encryption encryption.Encryption
 
 	StorageType maybe.Maybe[storage.Type]
 	Remote      maybe.Maybe[string]
@@ -49,44 +55,30 @@ type InitRes struct {
 }
 
 type AddParams struct {
-	CommonParams
 	SecretIndex
 
 	Data []byte
 }
 
 type CopyParams struct {
-	CommonParams
-
 	Src string
 	Dst string
 }
 
 type MoveParams struct {
-	CommonParams
-
 	Src string
 	Dst string
 }
 
 type GetParams struct {
-	CommonParams
 	SecretIndex
 }
 
 type ListParams struct {
-	CommonParams
-
 	Path string
 }
 
 type RemoveParams struct {
-	CommonParams
-
 	Path string
 	Key  maybe.Maybe[string]
-}
-
-type SyncParams struct {
-	CommonParams
 }

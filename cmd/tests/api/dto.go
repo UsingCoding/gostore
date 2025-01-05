@@ -12,6 +12,11 @@ type InitRequest struct {
 	Remote     maybe.Maybe[string]
 }
 
+type CloneRequest struct {
+	ID     string
+	Remote string
+}
+
 type AddRequest struct {
 	Path string
 	Key  maybe.Maybe[string]

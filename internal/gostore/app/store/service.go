@@ -12,11 +12,6 @@ import (
 )
 
 type Service interface {
-	// Init creates new store
-	Init(ctx context.Context, params InitParams) (InitRes, error)
-	// Clone store from remote
-	Clone(ctx context.Context, params CloneParams) error
-
 	Add(ctx context.Context, params AddParams) error
 
 	Copy(ctx context.Context, params CopyParams) error
@@ -27,123 +22,48 @@ type Service interface {
 
 	Remove(ctx context.Context, params RemoveParams) error
 
-	Unpack(ctx context.Context, params CommonParams) error
-	Pack(ctx context.Context, params CommonParams) error
+	Unpack(ctx context.Context) error
+	Pack(ctx context.Context) error
 
-	Sync(ctx context.Context, params SyncParams) error
-	Rollback(ctx context.Context, params CommonParams) error
+	Sync(ctx context.Context) error
+	Rollback(ctx context.Context) error
 }
 
 func NewStoreService(
+	storeID maybe.Maybe[string],
 	storageManager storage.Manager,
 	encryptionManager encryption.Manager,
 	manifestSerializer ManifestSerializer,
 	secretSerializer SecretSerializer,
+	dataProvider DataProvider,
 	identityProvider IdentityProvider,
 ) Service {
 	return &storeService{
+		storeID:            storeID,
 		storageManager:     storageManager,
 		encryptionManager:  encryptionManager,
 		manifestSerializer: manifestSerializer,
 		secretSerializer:   secretSerializer,
+		dataProvider:       dataProvider,
 		identityProvider:   identityProvider,
 	}
 }
 
 type storeService struct {
+	storeID maybe.Maybe[string]
+
 	storageManager    storage.Manager
 	encryptionManager encryption.Manager
 
 	manifestSerializer ManifestSerializer
 	secretSerializer   SecretSerializer
 
+	dataProvider     DataProvider
 	identityProvider IdentityProvider
 }
 
-func (service *storeService) Init(ctx context.Context, params InitParams) (InitRes, error) {
-	storePath, err := service.storeLocation(params.CommonParams)
-	if err != nil {
-		return InitRes{}, err
-	}
-
-	storageType := maybe.MapNone(params.StorageType, func() storage.Type {
-		// use git as default storage type
-		return storage.GITType
-	})
-
-	s, err := service.storageManager.Init(
-		ctx,
-		storePath,
-		params.Remote,
-		storageType,
-	)
-	if err != nil {
-		return InitRes{}, err
-	}
-
-	var (
-		recipients  []encryption.Recipient
-		newIdentity maybe.Maybe[encryption.Identity]
-	)
-	const enc = encryption.AgeEncryption
-	if len(params.Recipients) != 0 {
-		recipients = params.Recipients
-	} else {
-		identity, err2 := service.encryptionManager.GenerateIdentity(enc)
-		if err2 != nil {
-			return InitRes{}, err2
-		}
-
-		recipients = []encryption.Recipient{identity.Recipient}
-
-		newIdentity = maybe.NewJust(identity)
-	}
-
-	m := Manifest{
-		StorageType: storageType,
-		Encryption:  enc,
-		Recipients:  recipients,
-	}
-	data, err := service.manifestSerializer.Serialize(m)
-	if err != nil {
-		return InitRes{}, errors.Wrapf(err, "failed to serialize store manifest")
-	}
-
-	err = s.Store(ctx, ManifestPath, data)
-	if err != nil {
-		return InitRes{}, errors.Wrapf(err, "failed to store manifest")
-	}
-
-	err = s.Commit(ctx, "Initialized store")
-	if err != nil {
-		return InitRes{}, errors.Wrapf(err, "failed to commit to storage")
-	}
-
-	if maybe.Valid(params.Remote) {
-		err = s.Push(ctx)
-		if err != nil {
-			return InitRes{}, errors.Wrapf(err, "failed to sync storage")
-		}
-	}
-
-	return InitRes{
-		StorePath:         storePath,
-		GeneratedIdentity: newIdentity,
-	}, nil
-}
-
-func (service *storeService) Clone(ctx context.Context, params CloneParams) error {
-	storePath, err := service.storeLocation(params.CommonParams)
-	if err != nil {
-		return err
-	}
-
-	_, err = service.storageManager.Clone(ctx, storePath, params.Remote, params.StorageType)
-	return errors.Wrap(err, "failed to clone repo")
-}
-
 func (service *storeService) Add(ctx context.Context, params AddParams) (err error) {
-	s, err := service.loadStore(ctx, params.CommonParams)
+	s, err := service.loadStore(ctx)
 	if err != nil {
 		return errors.Wrap(err, "failed to load store")
 	}
@@ -161,7 +81,7 @@ func (service *storeService) Add(ctx context.Context, params AddParams) (err err
 }
 
 func (service *storeService) Copy(ctx context.Context, params CopyParams) (err error) {
-	s, err := service.loadStore(ctx, params.CommonParams)
+	s, err := service.loadStore(ctx)
 	if err != nil {
 		return errors.Wrap(err, "failed to load store")
 	}
@@ -174,7 +94,7 @@ func (service *storeService) Copy(ctx context.Context, params CopyParams) (err e
 }
 
 func (service *storeService) Move(ctx context.Context, params MoveParams) (err error) {
-	s, err := service.loadStore(ctx, params.CommonParams)
+	s, err := service.loadStore(ctx)
 	if err != nil {
 		return errors.Wrap(err, "failed to load store")
 	}
@@ -187,7 +107,7 @@ func (service *storeService) Move(ctx context.Context, params MoveParams) (err e
 }
 
 func (service *storeService) Get(ctx context.Context, params GetParams) ([]SecretData, error) {
-	s, err := service.loadStore(ctx, params.CommonParams)
+	s, err := service.loadStore(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to load store")
 	}
@@ -196,7 +116,7 @@ func (service *storeService) Get(ctx context.Context, params GetParams) ([]Secre
 }
 
 func (service *storeService) List(ctx context.Context, params ListParams) (storage.Tree, error) {
-	s, err := service.loadStore(ctx, params.CommonParams)
+	s, err := service.loadStore(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to load store")
 	}
@@ -205,7 +125,7 @@ func (service *storeService) List(ctx context.Context, params ListParams) (stora
 }
 
 func (service *storeService) Remove(ctx context.Context, params RemoveParams) (err error) {
-	s, err := service.loadStore(ctx, params.CommonParams)
+	s, err := service.loadStore(ctx)
 	if err != nil {
 		return errors.Wrap(err, "failed to load store")
 	}
@@ -217,8 +137,8 @@ func (service *storeService) Remove(ctx context.Context, params RemoveParams) (e
 	return err
 }
 
-func (service *storeService) Unpack(ctx context.Context, params CommonParams) (err error) {
-	s, err := service.loadStore(ctx, params)
+func (service *storeService) Unpack(ctx context.Context) (err error) {
+	s, err := service.loadStore(ctx)
 	if err != nil {
 		return errors.Wrap(err, "failed to load store")
 	}
@@ -234,8 +154,8 @@ func (service *storeService) Unpack(ctx context.Context, params CommonParams) (e
 	return err
 }
 
-func (service *storeService) Pack(ctx context.Context, params CommonParams) (err error) {
-	s, err := service.loadStore(ctx, params)
+func (service *storeService) Pack(ctx context.Context) (err error) {
+	s, err := service.loadStore(ctx)
 	if err != nil {
 		return errors.Wrap(err, "failed to load store")
 	}
@@ -251,8 +171,8 @@ func (service *storeService) Pack(ctx context.Context, params CommonParams) (err
 	return err
 }
 
-func (service *storeService) Sync(ctx context.Context, params SyncParams) error {
-	s, err := service.loadStore(ctx, params.CommonParams)
+func (service *storeService) Sync(ctx context.Context) error {
+	s, err := service.loadStore(ctx)
 	if err != nil {
 		return errors.Wrap(err, "failed to load store")
 	}
@@ -260,8 +180,8 @@ func (service *storeService) Sync(ctx context.Context, params SyncParams) error 
 	return s.sync(ctx)
 }
 
-func (service *storeService) Rollback(ctx context.Context, params CommonParams) error {
-	s, err := service.loadStore(ctx, params)
+func (service *storeService) Rollback(ctx context.Context) error {
+	s, err := service.loadStore(ctx)
 	if err != nil {
 		return errors.Wrap(err, "failed to load store")
 	}
@@ -269,8 +189,8 @@ func (service *storeService) Rollback(ctx context.Context, params CommonParams) 
 	return s.rollback(ctx)
 }
 
-func (service *storeService) loadStore(ctx context.Context, params CommonParams) (*store, error) {
-	storePath, err := service.storeLocation(params)
+func (service *storeService) loadStore(ctx context.Context) (*store, error) {
+	storePath, err := service.resolveStoreLocation(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -318,10 +238,27 @@ func (service *storeService) writeManifest(ctx context.Context, m Manifest, s st
 	return errors.Wrapf(err, "failed to store manifest")
 }
 
-func (service *storeService) storeLocation(params CommonParams) (string, error) {
-	if maybe.Valid(params.StorePath) {
-		return maybe.Just(params.StorePath), nil
+func (service *storeService) resolveStoreLocation(ctx context.Context) (string, error) {
+	if id, ok := maybe.JustValid(service.storeID); ok {
+		storePath, err := service.dataProvider.StorePath(ctx, id)
+		if err != nil {
+			return "", err
+		}
+		if p, ok := maybe.JustValid(storePath); ok {
+			return p, nil
+		}
+
+		return "", errors.Errorf("failed to resolve store location for %s", id)
 	}
 
-	return "", errors.New("empty store path")
+	storePath, err := service.dataProvider.CurrentStorePath(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	if s, ok := maybe.JustValid(storePath); ok {
+		return s, nil
+	}
+
+	return "", errors.New("failed to resolve store location: no current store path")
 }

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/UsingCoding/gostore/cmd/tests/api"
 	"github.com/UsingCoding/gostore/internal/common/maybe"
@@ -12,7 +13,7 @@ import (
 
 func TestTreeCopy(t *testing.T) {
 	s, err := newSuite()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	t.Cleanup(func() {
 		s.cleanup()
 	})
@@ -20,7 +21,7 @@ func TestTreeCopy(t *testing.T) {
 	err = s.gostore().Init(api.InitRequest{
 		ID: "main",
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	t.Run("nested tree", func(t *testing.T) {
 		err2 := createSubTree(
@@ -49,7 +50,7 @@ func TestTreeCopy(t *testing.T) {
 				},
 			},
 		)
-		assert.NoError(t, err2)
+		require.NoError(t, err2)
 		t.Cleanup(func() {
 			err2 = clearSubtree("", s)
 			assert.NoError(t, err2)
@@ -60,19 +61,19 @@ func TestTreeCopy(t *testing.T) {
 			Src: "node1/node3",
 			Dst: "node1/node7",
 		})
-		assert.NoError(t, err2)
+		require.NoError(t, err2)
 
 		list1, err2 := s.gostore().List(api.ListRequest{
 			Path: maybe.NewJust("node1/node3"),
 		})
-		assert.NoError(t, err2)
+		require.NoError(t, err2)
 
 		list2, err2 := s.gostore().List(api.ListRequest{
 			Path: maybe.NewJust("node1/node7"),
 		})
-		assert.NoError(t, err2)
+		require.NoError(t, err2)
 
-		assert.Equal(
+		require.Equal(
 			t,
 			list1.Nodes,
 			list2.Nodes,
@@ -106,7 +107,7 @@ func TestTreeCopy(t *testing.T) {
 				},
 			},
 		)
-		assert.NoError(t, err2)
+		require.NoError(t, err2)
 		t.Cleanup(func() {
 			err2 = clearSubtree("", s)
 			assert.NoError(t, err2)
@@ -114,20 +115,20 @@ func TestTreeCopy(t *testing.T) {
 
 		// get root
 		root, err2 := s.gostore().List(api.ListRequest{})
-		assert.NoError(t, err2)
+		require.NoError(t, err2)
 
 		// copy node3 subtree under node3
 		err2 = s.gostore().Copy(api.CopyRequest{
 			Src: "node1/node3",
 			Dst: "node1/node3",
 		})
-		assert.NoError(t, err2)
+		require.NoError(t, err2)
 
 		newRoot, err2 := s.gostore().List(api.ListRequest{})
-		assert.NoError(t, err2)
+		require.NoError(t, err2)
 
 		// tree should not change
-		assert.Equal(t, root, newRoot)
+		require.Equal(t, root, newRoot)
 	})
 
 	t.Run("merge trees", func(t *testing.T) {
@@ -165,7 +166,7 @@ func TestTreeCopy(t *testing.T) {
 				},
 			},
 		)
-		assert.NoError(t, err2)
+		require.NoError(t, err2)
 		t.Cleanup(func() {
 			err2 = clearSubtree("", s)
 			assert.NoError(t, err2)
@@ -176,12 +177,12 @@ func TestTreeCopy(t *testing.T) {
 			Src: "node1/node3",
 			Dst: "node1/node6/node9",
 		})
-		assert.NoError(t, err2)
+		require.NoError(t, err2)
 
 		list, err2 := s.gostore().List(api.ListRequest{})
-		assert.NoError(t, err2)
+		require.NoError(t, err2)
 
-		assert.Equal(t,
+		require.Equal(t,
 			api.ListNode{
 				Name: "node1",
 				Nodes: []api.ListNode{

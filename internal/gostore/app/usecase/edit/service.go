@@ -6,7 +6,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/UsingCoding/gostore/internal/common/maybe"
-	appservice "github.com/UsingCoding/gostore/internal/gostore/app/service"
 	"github.com/UsingCoding/gostore/internal/gostore/app/store"
 )
 
@@ -14,12 +13,12 @@ type Service interface {
 	Edit(ctx context.Context, index store.SecretIndex) error
 }
 
-func NewService(s appservice.Service, editor Editor) Service {
+func NewService(s store.Service, editor Editor) Service {
 	return &service{service: s, editor: editor}
 }
 
 type service struct {
-	service appservice.Service
+	service store.Service
 	editor  Editor
 }
 

@@ -6,10 +6,11 @@ import (
 	stderrors "errors"
 	stdslices "slices"
 
-	"github.com/UsingCoding/fpgo/pkg/slices"
+	fpslice "github.com/UsingCoding/fpgo/pkg/slices"
 	"github.com/pkg/errors"
 
 	"github.com/UsingCoding/gostore/internal/common/maybe"
+	"github.com/UsingCoding/gostore/internal/common/slices"
 	"github.com/UsingCoding/gostore/internal/gostore/app/encryption"
 	"github.com/UsingCoding/gostore/internal/gostore/app/storage"
 	"github.com/UsingCoding/gostore/internal/gostore/app/store"
@@ -27,7 +28,6 @@ type Service interface {
 	SetCurrentStore(ctx context.Context, storeID string) error
 
 	CurrentStoreID(ctx context.Context) (maybe.Maybe[StoreID], error)
-	CurrentStorePath(ctx context.Context) (maybe.Maybe[string], error)
 	GostoreLocation(ctx context.Context) string
 
 	ListStores(ctx context.Context) ([]StoreView, error)
@@ -42,6 +42,7 @@ type Service interface {
 	RemoveStore(ctx context.Context, storeID StoreID) error
 
 	store.IdentityProvider
+	store.DataProvider
 }
 
 func NewService(
@@ -112,26 +113,6 @@ func (s *service) CurrentStoreID(ctx context.Context) (maybe.Maybe[StoreID], err
 	return config.Context, nil
 }
 
-func (s *service) CurrentStorePath(ctx context.Context) (maybe.Maybe[string], error) {
-	config, err := s.storage.Load(ctx)
-	if err != nil {
-		return maybe.Maybe[string]{}, errors.Wrap(err, "failed to load config")
-	}
-
-	if !maybe.Valid(config.Context) {
-		return maybe.Maybe[string]{}, nil
-	}
-
-	i := stdslices.IndexFunc(config.Stores, func(s Store) bool {
-		return s.ID == maybe.Just(config.Context)
-	})
-	if i == -1 {
-		return maybe.Maybe[string]{}, err
-	}
-
-	return maybe.NewJust(config.Stores[i].Path), nil
-}
-
 func (s *service) GostoreLocation(context.Context) string {
 	return s.gostoreLocation
 }
@@ -142,7 +123,7 @@ func (s *service) ListStores(ctx context.Context) ([]StoreView, error) {
 		return nil, errors.Wrap(err, "failed to load config")
 	}
 
-	return slices.Map(config.Stores, func(s Store) StoreView {
+	return fpslice.Map(config.Stores, func(s Store) StoreView {
 		return StoreView{
 			ID:      s.ID,
 			Path:    s.Path,
@@ -256,7 +237,7 @@ func (s *service) ExportRawIdentity(ctx context.Context, recipients ...encryptio
 		return nil, errors.Wrap(err, "failed to load config")
 	}
 
-	return slices.MapErr(recipients, func(recipient encryption.Recipient) ([]byte, error) {
+	return fpslice.MapErr(recipients, func(recipient encryption.Recipient) ([]byte, error) {
 		i := stdslices.IndexFunc(config.Identities, func(i encryption.Identity) bool {
 			return bytes.Equal(i.Recipient, recipient)
 		})
@@ -327,4 +308,39 @@ func (s *service) IdentityByRecipient(ctx context.Context, recipient encryption.
 	}
 
 	return maybe.NewJust(config.Identities[i]), nil
+}
+
+func (s *service) CurrentStorePath(ctx context.Context) (maybe.Maybe[string], error) {
+	config, err := s.storage.Load(ctx)
+	if err != nil {
+		return maybe.Maybe[string]{}, errors.Wrap(err, "failed to load config")
+	}
+
+	if !maybe.Valid(config.Context) {
+		return maybe.Maybe[string]{}, nil
+	}
+
+	i := stdslices.IndexFunc(config.Stores, func(s Store) bool {
+		return s.ID == maybe.Just(config.Context)
+	})
+	if i == -1 {
+		return maybe.Maybe[string]{}, err
+	}
+
+	return maybe.NewJust(config.Stores[i].Path), nil
+}
+func (s *service) StorePath(ctx context.Context, storeID string) (maybe.Maybe[string], error) {
+	config, err := s.storage.Load(ctx)
+	if err != nil {
+		return maybe.Maybe[string]{}, errors.Wrap(err, "failed to load config")
+	}
+
+	rs, ok := maybe.JustValid(slices.Find(config.Stores, func(s Store) bool {
+		return string(s.ID) == storeID
+	}))
+	if !ok {
+		return maybe.Maybe[string]{}, nil
+	}
+
+	return maybe.NewJust(rs.Path), nil
 }

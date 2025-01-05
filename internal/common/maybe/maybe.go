@@ -67,3 +67,12 @@ func ToPtr[T any](m Maybe[T]) *T {
 	}
 	return nil
 }
+
+func MapZero[T comparable](t T) Maybe[T] {
+	var zero T
+	if t == zero {
+		return NewNone[T]()
+	}
+
+	return NewJust[T](t)
+}
