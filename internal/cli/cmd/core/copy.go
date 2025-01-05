@@ -18,7 +18,7 @@ func copyCmd() *cli.Command {
 		UsageText:    "cp <src> <dst>",
 		Category:     cmd.CoreCategory,
 		Action:       executeCopy,
-		BashComplete: completion.ListCompletion,
+		BashComplete: completion.ListCompletion(""),
 	}
 }
 

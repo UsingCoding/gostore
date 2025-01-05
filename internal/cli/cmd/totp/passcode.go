@@ -1,7 +1,9 @@
 package totp
 
 import (
+	"context"
 	"os"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
@@ -16,30 +18,71 @@ func passcode() *cli.Command {
 	return &cli.Command{
 		Name:         "passcode",
 		Usage:        "Generate totp passcode",
-		BashComplete: clicompletion.ListCompletion,
+		BashComplete: clicompletion.ListCompletion("totp"),
 		Action: func(ctx *cli.Context) error {
 			if ctx.Args().Len() < 1 {
 				return errors.New("not enough arguments")
 			}
 
-			path := ctx.Args().First()
-
 			service := clipkg.ContainerScope.MustGet(ctx.Context).StoreService
-
-			o := consoleoutput.New(os.Stdout, consoleoutput.WithNewline(true))
-
-			p, err := apptotp.NewService(service).
-				Passcode(
+			pv, err := apptotp.
+				NewService(service).
+				PasscodeView(
 					ctx.Context,
-					path,
+					ctx.Args().First(),
 				)
 			if err != nil {
 				return err
 			}
 
-			o.Printf("TOTP p: %s", p)
+			o := consoleoutput.New(os.Stdout, consoleoutput.WithNewline(true))
+
+			o.Printf("Time-based One Time Password")
+
+			return drawCountdown(ctx.Context, pv)
+		},
+	}
+}
+
+func drawCountdown(ctx context.Context, pv apptotp.PasscodeView) error {
+	countdown := pv.LastCountdown
+	code, err := pv.GeneratePasscode()
+	if err != nil {
+		return err
+	}
+
+	o := consoleoutput.New(os.Stdout)
+	firstIteration := true
+
+	for {
+		// \r brings cursor to beginning of the line
+		// \033[K clear line
+		escape := "\r\033[K"
+
+		// first iteration
+		if firstIteration {
+			escape = ""
+			firstIteration = false
+		}
+
+		if countdown == 0 {
+			code, err = pv.GeneratePasscode()
+			if err != nil {
+				return err
+			}
+			countdown = pv.Period
+		}
+
+		o.Printf("%s%s - %d", escape, code, countdown)
+
+		select {
+		case <-ctx.Done():
+			// print new line
+			o.Printf("\n")
 
 			return nil
-		},
+		case <-time.After(time.Second):
+			countdown--
+		}
 	}
 }

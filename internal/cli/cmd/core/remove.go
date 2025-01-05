@@ -18,7 +18,7 @@ func remove() *cli.Command {
 		Usage:        "Removes secret from storage or field from secret",
 		Category:     cmd.CoreCategory,
 		Action:       executeRemove,
-		BashComplete: completion.ListCompletion,
+		BashComplete: completion.ListCompletion(""),
 	}
 }
 

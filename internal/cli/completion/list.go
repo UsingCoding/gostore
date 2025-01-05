@@ -10,18 +10,23 @@ import (
 	"github.com/UsingCoding/gostore/internal/gostore/infrastructure/consoleoutput"
 )
 
-func ListCompletion(ctx *cli.Context) {
-	// create own container since common context is not initialized yet
-	c := clipkg.NewContainer(ctx)
+func ListCompletion(prefix string) func(ctx *cli.Context) {
+	return func(ctx *cli.Context) {
+		// create own container since common context is not initialized yet
+		c := clipkg.NewContainer(ctx)
 
-	tree, err := c.StoreService.List(ctx.Context, store.ListParams{})
-	if err != nil {
-		return
-	}
+		tree, err := c.StoreService.List(
+			ctx.Context,
+			store.ListParams{Path: prefix},
+		)
+		if err != nil {
+			return
+		}
 
-	o := consoleoutput.New(os.Stdout, consoleoutput.WithNewline(true))
-	for _, p := range tree.Inline().Keys() {
-		o.Printf(p)
+		o := consoleoutput.New(os.Stdout, consoleoutput.WithNewline(true))
+		for _, p := range tree.Inline().Keys() {
+			o.Printf(p)
+		}
 	}
 }
 

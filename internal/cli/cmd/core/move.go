@@ -18,7 +18,7 @@ func move() *cli.Command {
 		UsageText:    "mv <src> <dst>",
 		Category:     cmd.CoreCategory,
 		Action:       executeMove,
-		BashComplete: completion.ListCompletion,
+		BashComplete: completion.ListCompletion(""),
 	}
 }
 

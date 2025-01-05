@@ -25,7 +25,7 @@ NOTE: before run viewer app gostore put UNENCRYPTED secret data in tmp file and 
 Since apps like xdg-open does not blocking programs that called it or provide some info about opened resource`,
 		Category:     cmd.MgmtCategory,
 		Action:       executeView,
-		BashComplete: completionpkg.ListCompletion,
+		BashComplete: completionpkg.ListCompletion(""),
 	}
 }
 

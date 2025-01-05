@@ -25,7 +25,7 @@ func get() *cli.Command {
 		Usage:        "Get secret from storage",
 		Category:     cmd.CoreCategory,
 		Action:       executeGet,
-		BashComplete: completion.ListCompletion,
+		BashComplete: completion.ListCompletion(""),
 	}
 }
 

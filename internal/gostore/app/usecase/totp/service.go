@@ -9,7 +9,7 @@ import (
 
 type Service interface {
 	AddIssuer(ctx context.Context, params AddParams) error
-	Passcode(ctx context.Context, name string) (string, error)
+	PasscodeView(ctx context.Context, name string) (PasscodeView, error)
 }
 
 func NewService(s store.Service) Service {
@@ -23,7 +23,7 @@ type service struct {
 const (
 	totpPathPrefix = "totp"
 
-	// totp metadata
+	// totp metadata keys
 	secretKey = "secret"
 	algKey    = "alg"
 )

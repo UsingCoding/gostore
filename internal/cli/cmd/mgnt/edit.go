@@ -24,7 +24,7 @@ func edit() *cli.Command {
 		UsageText:    "edit <SECRET_ID> ?<KEY>",
 		Category:     cmd.MgmtCategory,
 		Action:       executeEdit,
-		BashComplete: completionpkg.ListCompletion,
+		BashComplete: completionpkg.ListCompletion(""),
 	}
 }
 

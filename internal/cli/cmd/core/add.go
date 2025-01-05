@@ -23,7 +23,7 @@ func add() *cli.Command {
 		Usage:        "Add secret to current store",
 		Category:     cmd.CoreCategory,
 		Action:       executeAdd,
-		BashComplete: completion.ListCompletion,
+		BashComplete: completion.ListCompletion(""),
 	}
 }
 
