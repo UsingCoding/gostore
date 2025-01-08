@@ -4,8 +4,7 @@ project_name: gostore
 
 before:
   hooks:
-    - go mod tidy
-    - golangci-lint run --timeout 5m
+    - mage
 
 builds:
   - id: gostore

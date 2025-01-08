@@ -3,7 +3,6 @@ package core
 import (
 	"io"
 	stdos "os"
-	"syscall"
 
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
@@ -42,11 +41,11 @@ func executeAdd(ctx *cli.Context) error {
 		data []byte
 		err  error
 	)
-	if term.IsTerminal(syscall.Stdin) {
+	if term.IsTerminal(int(stdos.Stdout.Fd())) {
 		o := consoleoutput.New(stdos.Stdout)
 		o.Printf("Enter secret:")
 
-		data, err = term.ReadPassword(syscall.Stdin)
+		data, err = term.ReadPassword(int(stdos.Stdout.Fd()))
 		if err != nil {
 			return errors.Wrap(err, "failed to read password")
 		}

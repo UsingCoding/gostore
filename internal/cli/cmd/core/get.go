@@ -3,7 +3,6 @@ package core
 import (
 	"fmt"
 	"os"
-	"syscall"
 
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
@@ -41,7 +40,7 @@ func executeGet(ctx *cli.Context) error {
 	}
 
 	var opts []consoleoutput.Opt
-	if term.IsTerminal(syscall.Stdin) {
+	if term.IsTerminal(int(os.Stdout.Fd())) {
 		opts = append(opts, consoleoutput.WithNewline(true))
 	}
 
