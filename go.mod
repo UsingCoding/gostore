@@ -11,6 +11,7 @@ require (
 	github.com/go-git/go-git/v5 v5.12.0
 	github.com/gofrs/uuid/v5 v5.3.0
 	github.com/manifoldco/promptui v0.9.0
+	github.com/mdp/qrterminal/v3 v3.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/pquerna/otp v1.4.0
 	github.com/schollz/progressbar/v3 v3.15.0
@@ -55,4 +56,5 @@ require (
 	golang.org/x/tools v0.22.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
+	rsc.io/qr v0.2.0 // indirect
 )

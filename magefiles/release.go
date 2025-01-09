@@ -9,15 +9,23 @@ import (
 )
 
 const (
-	version = "v1.0.0"
+	version = "v1.1.0"
 )
 
 type Release mg.Namespace
 
 func (Release) Publish() error {
-	err := createTag(version)
+	publish, err := confirm("Publish")
 	if err != nil {
 		return err
+	}
+
+	if publish {
+		err = createTag(version)
+		if err != nil {
+			return err
+		}
+
 	}
 
 	token, err := resolveToken()
@@ -27,11 +35,6 @@ func (Release) Publish() error {
 
 	env := map[string]string{
 		"GITHUB_TOKEN": token,
-	}
-
-	publish, err := confirm("Publish")
-	if err != nil {
-		return err
 	}
 
 	opts := []string{"release"}

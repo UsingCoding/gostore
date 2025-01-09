@@ -9,6 +9,7 @@ func Main() []*cli.Command {
 		add(),
 		copyCmd(),
 		get(),
+		qrget(),
 		list(),
 		move(),
 		remove(),

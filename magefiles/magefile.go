@@ -30,6 +30,7 @@ func Build(_ context.Context) error {
 	return sh.RunV(
 		"go",
 		"build",
+		"-v",
 		"-o",
 		"./bin/"+appID,
 		"./cmd/"+appID,
