@@ -17,6 +17,7 @@ import (
 func qrget() *cli.Command {
 	return &cli.Command{
 		Name:         "qrget",
+		Aliases:      []string{"qrcat"},
 		Usage:        "Prints QR code with secret payload (supports displaying only one payload)",
 		Category:     cmd.CoreCategory,
 		BashComplete: completion.ListCompletion(""),
