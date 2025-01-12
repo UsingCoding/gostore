@@ -7,6 +7,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
+	"golang.org/x/term"
 
 	clipkg "github.com/UsingCoding/gostore/internal/cli"
 	clicompletion "github.com/UsingCoding/gostore/internal/cli/completion"
@@ -36,10 +37,25 @@ func passcode() *cli.Command {
 			}
 
 			o := consoleoutput.New(os.Stdout, consoleoutput.WithNewline(true))
-
 			o.Printf("Time-based One Time Password")
 
-			return drawCountdown(ctx.Context, pv)
+			switch term.IsTerminal(int(os.Stdout.Fd())) {
+			case true:
+				return drawCountdown(ctx.Context, pv)
+			default:
+				code, err2 := pv.GeneratePasscode()
+				if err2 != nil {
+					return err2
+				}
+
+				o.Printf(
+					"Code: %s Countdown: %ds",
+					code,
+					pv.LastCountdown,
+				)
+
+				return nil
+			}
 		},
 	}
 }
