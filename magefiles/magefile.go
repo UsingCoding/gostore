@@ -37,6 +37,10 @@ func Build(_ context.Context) error {
 	)
 }
 
+func Install() error {
+	return sh.RunV("go", "install", "-v", "github.com/UsingCoding/gostore/cmd/gostore")
+}
+
 func Modules() error {
 	return sh.RunV("go", "mod", "tidy")
 }
