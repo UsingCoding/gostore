@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
@@ -21,11 +22,14 @@ func (Release) Publish() error {
 	}
 
 	if publish {
+		err = ensureTagNotExists(version)
+		if err != nil {
+			return err
+		}
 		err = createTag(version)
 		if err != nil {
 			return err
 		}
-
 	}
 
 	token, err := resolveToken()
@@ -37,7 +41,7 @@ func (Release) Publish() error {
 		"GITHUB_TOKEN": token,
 	}
 
-	opts := []string{"release"}
+	opts := []string{"release", "--clean"}
 	if !publish {
 		opts = append(
 			opts,
@@ -53,16 +57,30 @@ func (Release) Publish() error {
 	)
 }
 
-func (Release) Clean() error {
-	return sh.Rm("dist")
-}
-
 func createTag(v string) error {
 	err := sh.RunV("git", "tag", v, "-f")
 	if err != nil {
 		return err
 	}
 	return sh.RunV("git", "push", "origin", v)
+}
+
+func ensureTagNotExists(v string) error {
+	err := sh.RunV("git", "fetch", "--all")
+	if err != nil {
+		return err
+	}
+
+	tags, err := sh.Output("git", "tag", "--list", v)
+	if err != nil {
+		return err
+	}
+
+	if tags != "" {
+		return fmt.Errorf("tag '%s' exists", v)
+	}
+
+	return nil
 }
 
 func confirm(label string) (bool, error) {
