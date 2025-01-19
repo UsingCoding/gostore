@@ -41,11 +41,11 @@ func executeAdd(ctx *cli.Context) error {
 		data []byte
 		err  error
 	)
-	if term.IsTerminal(int(stdos.Stdout.Fd())) {
-		o := consoleoutput.New(stdos.Stdout)
+	if term.IsTerminal(int(stdos.Stdin.Fd())) {
+		o := consoleoutput.New(stdos.Stdin)
 		o.Printf("Enter secret:")
 
-		data, err = term.ReadPassword(int(stdos.Stdout.Fd()))
+		data, err = term.ReadPassword(int(stdos.Stdin.Fd()))
 		if err != nil {
 			return errors.Wrap(err, "failed to read password")
 		}

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/magefile/mage/mg"
@@ -38,7 +39,12 @@ func Build(_ context.Context) error {
 }
 
 func Install() error {
-	return sh.RunV("go", "install", "-v", "github.com/UsingCoding/gostore/cmd/gostore")
+	return sh.RunV(
+		"go",
+		"install",
+		"-v",
+		fmt.Sprintf("github.com/UsingCoding/%s/cmd/%s", appID, appID),
+	)
 }
 
 func Modules() error {
