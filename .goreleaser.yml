@@ -24,6 +24,14 @@ builds:
       - -X github.com/UsingCoding/gostore/internal/cli/cmd/app.Version={{.RawVersion}}
       - -X github.com/UsingCoding/gostore/internal/cli/cmd/app.Commit={{.Commit}}
 
+brews:
+  - name: gostore
+    description: "Secret store manager"
+    homepage: "https://github.com/UsingCoding/gostore"
+    repository:
+      owner: UsingCoding
+      name: homebrew-public
+
 archives:
   - format: tar.gz
     # Use zip for Windows archives
