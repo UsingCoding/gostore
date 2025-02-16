@@ -229,34 +229,52 @@ func (storage *gitStorage) AddRemote(_ context.Context, remoteName, remoteAddr s
 	return errors.Wrapf(err, "failed to add remote %s %s to repo", remoteName, remoteAddr)
 }
 
-func (storage *gitStorage) HasRemote(context.Context) (bool, error) {
+func (storage *gitStorage) Push(ctx context.Context) error {
 	remotes, err := storage.repo.Remotes()
 	if err != nil {
-		return false, errors.Wrap(err, "failed to get remotes from repo")
+		return errors.Wrap(err, "failed to get remotes from repo")
 	}
 
-	return len(remotes) != 0, nil
-}
-
-func (storage *gitStorage) Push(ctx context.Context) error {
-	p := defaultProgress(ctx).Alter(progress.WithDescription("Pushing store"))
-	defer p.Finish()
-
-	err := storage.repo.PushContext(ctx, &git.PushOptions{
-		RemoteName: remoteName,
-		Auth:       nil,
-		Progress:   p,
-	})
-	if errors.Is(err, git.NoErrAlreadyUpToDate) {
-		return nil
+	if len(remotes) == 0 {
+		return errors.New("no remotes found to push")
 	}
-	return errors.Wrap(err, "failed to push repo")
+
+	for _, remote := range remotes {
+		err2 := func() error {
+			name := remote.Config().Name
+
+			p := defaultProgress(ctx).
+				Alter(progress.WithDescription(fmt.Sprintf("Pushing store to %s", name)))
+			defer p.Finish()
+
+			err2 := storage.repo.PushContext(ctx, &git.PushOptions{
+				RemoteName: name,
+				Auth:       nil,
+				Progress:   p,
+			})
+			if errors.Is(err2, git.NoErrAlreadyUpToDate) {
+				return nil
+			}
+			return errors.Wrap(err2, "failed to push repo")
+		}()
+		if err2 != nil {
+			return err2
+		}
+	}
+
+	return nil
 }
 
 func (storage *gitStorage) Pull(ctx context.Context) error {
+	// ensure remote exists
+	_, err := storage.repo.Remote(remoteName)
+	if err != nil {
+		return errors.Wrap(err, "failed to get remote from repo")
+	}
+
 	// enclose fetching in function to correct defer behavior
 
-	err := func() error {
+	err = func() error {
 		p := defaultProgress(ctx).Alter(progress.WithDescription("Fetching store"))
 		defer p.Finish()
 
@@ -277,12 +295,12 @@ func (storage *gitStorage) Pull(ctx context.Context) error {
 		return errors.WithStack(err)
 	}
 
-	p2 := defaultProgress(ctx).Alter(progress.WithDescription("Pulling store"))
-	defer p2.Finish()
+	p := defaultProgress(ctx).Alter(progress.WithDescription("Pulling store"))
+	defer p.Finish()
 
 	err = worktree.PullContext(ctx, &git.PullOptions{
 		RemoteName: remoteName,
-		Progress:   p2,
+		Progress:   p,
 	})
 	return errors.Wrap(err, "failed to pull from repo")
 }

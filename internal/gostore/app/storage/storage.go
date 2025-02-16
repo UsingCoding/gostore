@@ -26,8 +26,6 @@ type Storage interface {
 
 	// AddRemote to storage. remoteAddr depends on storage implementation
 	AddRemote(ctx context.Context, remoteName string, remoteAddr string) error
-	// HasRemote reports that Storage has remote
-	HasRemote(ctx context.Context) (bool, error)
 	// Push storage to remote if there is one
 	Push(ctx context.Context) error
 	// Pull changes from remote
