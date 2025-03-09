@@ -86,7 +86,7 @@ func (s *store) unpack(ctx context.Context) (err error) {
 	return eg.Wait()
 }
 
-func (s *store) pack(ctx context.Context) error {
+func (s *store) pack(ctx context.Context, params PackParams) error {
 	err := s.assertUnpacked()
 	if err != nil {
 		return err
@@ -112,7 +112,7 @@ func (s *store) pack(ctx context.Context) error {
 
 	for _, entryPath := range inlinedTree.Keys() {
 		eg.Go(func() error {
-			err = s.packSecret(ctx, entryPath)
+			err = s.packSecret(ctx, entryPath, params.SkipChangesCheck)
 			if err != nil {
 				return errors.Wrapf(err, "failed to pack secret %s", entryPath)
 			}
@@ -129,7 +129,7 @@ func (s *store) pack(ctx context.Context) error {
 	return eg.Wait()
 }
 
-func (s *store) packSecret(ctx context.Context, entryPath string) (err error) {
+func (s *store) packSecret(ctx context.Context, entryPath string, skipChangesCheck bool) (err error) {
 	data, err := s.storage.Get(ctx, entryPath)
 	if err != nil {
 		return err
@@ -157,9 +157,12 @@ func (s *store) packSecret(ctx context.Context, entryPath string) (err error) {
 		return errors.New("unknown secret deserialize result")
 	}
 
-	latest, err := s.storage.GetLatest(ctx, entryPath)
-	if err != nil {
-		return err
+	var latest maybe.Maybe[[]byte]
+	if !skipChangesCheck {
+		latest, err = s.storage.GetLatest(ctx, entryPath)
+		if err != nil {
+			return err
+		}
 	}
 
 	if maybe.Valid(latest) {

@@ -23,7 +23,7 @@ type Service interface {
 	Remove(ctx context.Context, params RemoveParams) error
 
 	Unpack(ctx context.Context) error
-	Pack(ctx context.Context) error
+	Pack(ctx context.Context, params PackParams) error
 
 	Sync(ctx context.Context) error
 	Rollback(ctx context.Context) error
@@ -154,7 +154,7 @@ func (service *storeService) Unpack(ctx context.Context) (err error) {
 	return err
 }
 
-func (service *storeService) Pack(ctx context.Context) (err error) {
+func (service *storeService) Pack(ctx context.Context, params PackParams) (err error) {
 	s, err := service.loadStore(ctx)
 	if err != nil {
 		return errors.Wrap(err, "failed to load store")
@@ -163,7 +163,7 @@ func (service *storeService) Pack(ctx context.Context) (err error) {
 		err = stderrors.Join(err, s.close())
 	}()
 
-	err = s.pack(ctx)
+	err = s.pack(ctx, params)
 	if err == nil {
 		s.manifest.Unpacked = false
 		err = stderrors.Join(err, service.writeManifest(ctx, s.manifest, s.storage))

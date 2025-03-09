@@ -82,3 +82,7 @@ type RemoveParams struct {
 	Path string
 	Key  maybe.Maybe[string]
 }
+
+type PackParams struct {
+	SkipChangesCheck bool // all files in storage will be tracked, since encryption may add timestamp when encrypts files
+}
