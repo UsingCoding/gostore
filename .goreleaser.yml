@@ -4,7 +4,7 @@ project_name: gostore
 
 before:
   hooks:
-    - mage
+    - mise test
 
 builds:
   - id: gostore
@@ -15,7 +15,6 @@ builds:
     goos:
       - linux
       - darwin
-      - windows
     goarch:
       - amd64
       - arm64
