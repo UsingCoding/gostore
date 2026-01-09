@@ -1,0 +1,37 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  releaser:
+    name: GoReleaser
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # needed for GoReleaser to find tags
+
+      - name: Set up mise
+        run: |
+          curl https://mise.run | sh
+
+      - name: Install tools via mise
+        run: mise i
+
+      - name: Run GoReleaser via mise
+        run: |
+          mise x -- goreleaser release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}

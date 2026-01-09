@@ -1,0 +1,31 @@
+[tools]
+go = "1.25"
+golangci-lint = "2.5.0"
+goreleaser = "2.12.5"
+
+[tasks.default]
+run = [
+    { task = "build" },
+    { task = "test" },
+]
+
+[tasks.build]
+run = """
+#!/usr/bin/env bash
+
+goreleaser build \
+  --snapshot --skip=before --clean \
+  --single-target -o ./dist/gostore
+"""
+
+[tasks.modules]
+run = "go mod tidy"
+
+[tasks.test]
+depends = [ "test:*" ]
+
+[tasks."test:go-test"]
+run = "go test ./..."
+
+[tasks."test:lint"]
+run = "golangci-lint run"
