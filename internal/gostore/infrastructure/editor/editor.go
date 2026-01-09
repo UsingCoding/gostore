@@ -9,8 +9,9 @@ import (
 	"os/exec"
 	"path"
 
-	"github.com/UsingCoding/gostore/internal/gostore/app/usecase/edit"
 	"github.com/pkg/errors"
+
+	"github.com/UsingCoding/gostore/internal/gostore/app/usecase/edit"
 )
 
 func NewEditor() (edit.Editor, error) {

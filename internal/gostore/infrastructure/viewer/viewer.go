@@ -6,9 +6,10 @@ import (
 	"os/exec"
 	"path"
 
+	"github.com/pkg/errors"
+
 	"github.com/UsingCoding/gostore/internal/common/slices"
 	"github.com/UsingCoding/gostore/internal/gostore/app/usecase/view"
-	"github.com/pkg/errors"
 )
 
 func NewViewer() (view.Viewer, error) {

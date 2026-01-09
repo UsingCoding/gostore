@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	gostorePath = "bin/gostore"
+	gostorePath = "dist/gostore"
 )
 
 // API defines api for gostore cli
