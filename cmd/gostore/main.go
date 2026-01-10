@@ -9,6 +9,7 @@ import (
 	"path"
 	"syscall"
 
+	"github.com/UsingCoding/gostore/internal/cli/tui"
 	"github.com/urfave/cli/v2"
 
 	"github.com/UsingCoding/gostore/internal/cli/cmd/app"
@@ -52,6 +53,9 @@ func runApp(ctx context.Context, args []string) error {
 		Usage:                "Secrets store manager",
 		EnableBashCompletion: true,
 		Before:               BeforeHook,
+		Action: func(c *cli.Context) error {
+			return tui.TUI(c.Context)
+		},
 		Commands: slices.Merge(
 			app.Main(),
 			core.Main(),
