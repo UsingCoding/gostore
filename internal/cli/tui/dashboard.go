@@ -32,6 +32,14 @@ const (
 	focusSecretPane
 )
 
+const (
+	keySpace = "<Space>"
+	keyDown  = "<Down>"
+	keyUp    = "<Up>"
+	keyEnter = "<Enter>"
+	keyEsc   = "<Esc>"
+)
+
 type dashboard struct {
 	ui.Block
 
@@ -285,7 +293,7 @@ func (d *dashboard) handleSecretsListEvent(e ui.Event) bool {
 	}
 
 	switch e.ID {
-	case "<Space>", " ":
+	case keySpace, " ":
 		d.secretsTree.ToggleExpand()
 		d.updateSelectedSecret()
 		return true
@@ -295,11 +303,11 @@ func (d *dashboard) handleSecretsListEvent(e ui.Event) bool {
 	case "d":
 		d.confirmRemoveSecret()
 		return true
-	case "j", "<Down>":
+	case "j", keyDown:
 		d.secretsTree.ScrollDown()
 		d.updateSelectedSecret()
 		return true
-	case "k", "<Up>":
+	case "k", keyUp:
 		d.secretsTree.ScrollUp()
 		d.updateSelectedSecret()
 		return true
@@ -311,7 +319,7 @@ func (d *dashboard) handleSecretsListEvent(e ui.Event) bool {
 		d.secretsTree.ScrollBottom()
 		d.updateSelectedSecret()
 		return true
-	case "<Enter>":
+	case keyEnter:
 		d.secretsTree.ToggleExpand()
 		return true
 	}
@@ -330,16 +338,16 @@ func (d *dashboard) handleStoresListEvent(e ui.Event) bool {
 	}
 
 	switch e.ID {
-	case "<Space>", " ":
+	case keySpace, " ":
 		d.switchStore()
 		return true
 	case "d":
 		d.confirmRemoveStore()
 		return true
-	case "j", "<Down>":
+	case "j", keyDown:
 		d.storesList.ScrollDown()
 		return true
-	case "k", "<Up>":
+	case "k", keyUp:
 		d.storesList.ScrollUp()
 		return true
 	case "<Home>":
@@ -355,13 +363,13 @@ func (d *dashboard) handleStoresListEvent(e ui.Event) bool {
 
 func (d *dashboard) handleSecretPaneEvent(e ui.Event) bool {
 	switch e.ID {
-	case "j", "<Down>":
+	case "j", keyDown:
 		d.secretPane.MoveSelection(1)
 		return true
-	case "k", "<Up>":
+	case "k", keyUp:
 		d.secretPane.MoveSelection(-1)
 		return true
-	case "<Space>", " ":
+	case keySpace, " ":
 		d.copySelectedField()
 		return true
 	case "v":
@@ -383,10 +391,10 @@ func (d *dashboard) handleSecretPaneEvent(e ui.Event) bool {
 
 func (d *dashboard) handleSearchEvent(e ui.Event, target focusArea) bool {
 	switch e.ID {
-	case "<Enter>":
+	case keyEnter:
 		d.applySearch(target)
 		return true
-	case "<Esc>":
+	case keyEsc:
 		d.cancelSearch(target)
 		return true
 	}
@@ -423,7 +431,7 @@ func (d *dashboard) handleModalEvent(e ui.Event) bool {
 			modal.modal.ActiveButtonIndex = (modal.modal.ActiveButtonIndex + 1) % len(modal.modal.Buttons)
 		}
 		return true
-	case "<Enter>":
+	case keyEnter:
 		if modal.modal.ActiveButtonIndex == 0 && modal.onConfirm != nil {
 			modal.onConfirm()
 		} else if modal.onCancel != nil {
@@ -431,7 +439,7 @@ func (d *dashboard) handleModalEvent(e ui.Event) bool {
 		}
 		d.modal = nil
 		return true
-	case "<Esc>":
+	case keyEsc:
 		if modal.onCancel != nil {
 			modal.onCancel()
 		}
@@ -448,7 +456,7 @@ func (d *dashboard) handleInputEvent(e ui.Event) bool {
 	}
 
 	switch e.ID {
-	case "<Enter>":
+	case keyEnter:
 		value := strings.TrimSpace(d.input.input.Text)
 		if value != "" {
 			d.input.onSubmit(value)
@@ -458,7 +466,7 @@ func (d *dashboard) handleInputEvent(e ui.Event) bool {
 		d.input = nil
 		d.setFocus(focusSecretPane)
 		return true
-	case "<Esc>":
+	case keyEsc:
 		if d.input.onCancel != nil {
 			d.input.onCancel()
 		}
@@ -481,7 +489,7 @@ func handleInputKey(input *widgets.Input, e ui.Event) bool {
 	case "<Right>":
 		input.MoveCursorRight()
 		return true
-	case "<Space>", " ":
+	case keySpace, " ":
 		input.InsertRune(' ')
 		return true
 	}
@@ -775,7 +783,7 @@ func (d *dashboard) setTreeSelectionByPath(path string) {
 	}
 }
 
-func flattenTreeNodes(nodes []*widgets.TreeNode, out []*widgets.TreeNode) []*widgets.TreeNode {
+func flattenTreeNodes(nodes, out []*widgets.TreeNode) []*widgets.TreeNode {
 	for _, node := range nodes {
 		out = append(out, node)
 		if node.Expanded {
@@ -819,7 +827,7 @@ func (d *dashboard) editSelectedField() {
 	if !ok {
 		return
 	}
-	field, ok := d.secretPane.SelectedField()
+	field, ok := d.secretPane.selectedField()
 	if !ok {
 		d.setStatus("Select a field")
 		return
@@ -870,7 +878,7 @@ func (d *dashboard) confirmRemoveField() {
 	if !ok {
 		return
 	}
-	field, ok := d.secretPane.SelectedField()
+	field, ok := d.secretPane.selectedField()
 	if !ok {
 		d.setStatus("Select a field")
 		return
@@ -943,7 +951,7 @@ func (d *dashboard) addField(path, key string) {
 }
 
 func (d *dashboard) copySelectedField() {
-	field, ok := d.secretPane.SelectedField()
+	field, ok := d.secretPane.selectedField()
 	if !ok {
 		return
 	}
@@ -1146,7 +1154,7 @@ func buildTreeNodes(entries []storage.Entry, base string) []*widgets.TreeNode {
 	return nodes
 }
 
-func filterTree(entries []storage.Entry, base string, query string) []storage.Entry {
+func filterTree(entries []storage.Entry, base, query string) []storage.Entry {
 	if query == "" {
 		return entries
 	}

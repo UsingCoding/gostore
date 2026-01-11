@@ -9,7 +9,6 @@ import (
 	"path"
 	"syscall"
 
-	"github.com/UsingCoding/gostore/internal/cli/tui"
 	"github.com/urfave/cli/v2"
 
 	"github.com/UsingCoding/gostore/internal/cli/cmd/app"
@@ -18,9 +17,9 @@ import (
 	"github.com/UsingCoding/gostore/internal/cli/cmd/mgnt"
 	"github.com/UsingCoding/gostore/internal/cli/cmd/store"
 	"github.com/UsingCoding/gostore/internal/cli/cmd/totp"
-	"github.com/UsingCoding/gostore/internal/common/slices"
-
+	"github.com/UsingCoding/gostore/internal/cli/tui"
 	"github.com/UsingCoding/gostore/internal/common/errors"
+	"github.com/UsingCoding/gostore/internal/common/slices"
 	"github.com/UsingCoding/gostore/internal/gostore/app/verbose"
 	"github.com/UsingCoding/gostore/internal/gostore/infrastructure/consoleoutput"
 )

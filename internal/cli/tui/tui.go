@@ -3,11 +3,12 @@ package tui
 import (
 	"context"
 
+	ui "github.com/metaspartan/gotui/v5"
+	"github.com/pkg/errors"
+
 	clipkg "github.com/UsingCoding/gostore/internal/cli"
 	"github.com/UsingCoding/gostore/internal/gostore/app/usecase/edit"
 	infraeditor "github.com/UsingCoding/gostore/internal/gostore/infrastructure/editor"
-	ui "github.com/metaspartan/gotui/v5"
-	"github.com/pkg/errors"
 )
 
 func TUI(ctx context.Context) error {

@@ -68,7 +68,7 @@ func (p *SecretPane) SetFields(fields []secretField, placeholder string) {
 	p.needsScroll = true
 }
 
-func (p *SecretPane) SelectedField() (secretField, bool) {
+func (p *SecretPane) selectedField() (secretField, bool) {
 	if p.selected < 0 || p.selected >= len(p.fields) {
 		return secretField{}, false
 	}
@@ -114,7 +114,7 @@ func (p *SecretPane) Draw(buf *ui.Buffer) {
 	}
 
 	if content.Dx() > 2 {
-		content.Max.X -= 1
+		content.Max.X--
 	}
 
 	heights := p.fieldHeights(content.Dx())
@@ -209,13 +209,13 @@ func (p *SecretPane) adjustScroll(heights []int, viewHeight int) int {
 	return count
 }
 
-func (p *SecretPane) visibleRange(heights []int, viewHeight int, start int) (int, int) {
+func (p *SecretPane) visibleRange(heights []int, viewHeight, start int) (count, last int) {
 	if start < 0 {
 		start = 0
 	}
 	y := 0
-	count := 0
-	last := start - 1
+	count = 0
+	last = start - 1
 
 	for i := start; i < len(heights); i++ {
 		height := heights[i]
