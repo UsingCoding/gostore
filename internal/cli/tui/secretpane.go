@@ -22,7 +22,6 @@ type SecretPane struct {
 	selected    int
 	scroll      int
 	placeholder string
-	status      string
 	focused     bool
 	needsScroll bool
 
@@ -55,10 +54,6 @@ func (p *SecretPane) SetFocused(focused bool) {
 	} else {
 		p.BorderStyle = p.normalBorder
 	}
-}
-
-func (p *SecretPane) SetStatus(msg string) {
-	p.status = msg
 }
 
 func (p *SecretPane) SetFields(fields []secretField, placeholder string) {
@@ -106,7 +101,6 @@ func (p *SecretPane) ToggleVisible() {
 }
 
 func (p *SecretPane) Draw(buf *ui.Buffer) {
-	p.TitleRight = p.status
 	p.Block.Draw(buf)
 
 	if len(p.fields) == 0 {

@@ -10,6 +10,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
+	"github.com/atotto/clipboard"
 	ui "github.com/metaspartan/gotui/v5"
 	"github.com/metaspartan/gotui/v5/widgets"
 
@@ -39,7 +40,6 @@ type dashboard struct {
 	configService config.Service
 	storeService  store.Service
 	editService   edit.Service
-	clipboard     *mockClipboard
 
 	grid         *ui.Grid
 	sidebar      *widgets.Flex
@@ -52,6 +52,7 @@ type dashboard struct {
 	storesList    *widgets.List
 	storesSearch  *widgets.Input
 	secretPane    *SecretPane
+	statusBar     *widgets.Paragraph
 
 	focus            focusArea
 	lastSidebarFocus focusArea
@@ -72,7 +73,8 @@ type dashboard struct {
 	modal *confirmModal
 	input *textPrompt
 
-	status string
+	status        string
+	statusIsError bool
 }
 
 type confirmModal struct {
@@ -91,14 +93,6 @@ type textPrompt struct {
 	onCancel func()
 }
 
-type mockClipboard struct {
-	value string
-}
-
-func (c *mockClipboard) Copy(payload string) {
-	c.value = payload
-}
-
 func newDashboard(ctx context.Context, configService config.Service, storeService store.Service, editService edit.Service) *dashboard {
 	d := &dashboard{
 		Block:            *ui.NewBlock(),
@@ -106,7 +100,6 @@ func newDashboard(ctx context.Context, configService config.Service, storeServic
 		configService:    configService,
 		storeService:     storeService,
 		editService:      editService,
-		clipboard:        &mockClipboard{},
 		normalBorder:     ui.Theme.Block.Border,
 		focusBorder:      ui.NewStyle(ui.ColorGreen),
 		focus:            focusSecretsList,
@@ -153,6 +146,11 @@ func (d *dashboard) initWidgets() {
 
 	d.secretPane = NewSecretPane()
 
+	d.statusBar = widgets.NewParagraph()
+	d.statusBar.Title = "Status"
+	d.statusBar.WrapText = false
+	d.statusBar.BorderRounded = true
+
 	d.secretsPanel = widgets.NewFlex()
 	d.secretsPanel.Border = false
 	d.secretsPanel.Direction = widgets.FlexColumn
@@ -183,10 +181,29 @@ func (d *dashboard) initWidgets() {
 
 func (d *dashboard) Draw(buf *ui.Buffer) {
 	d.applyFocusStyles()
-	d.secretPane.SetStatus(d.status)
+	d.statusBar.Text = d.statusText()
 
-	d.grid.SetRect(d.Min.X, d.Min.Y, d.Max.X, d.Max.Y)
+	mainMinY := d.Min.Y
+	mainMaxY := d.Max.Y
+	statusHeight := statusBarHeight
+	if d.Dy() <= statusHeight+1 {
+		statusHeight = 0
+	}
+	if statusHeight > 0 {
+		mainMaxY = d.Max.Y - statusHeight
+		if mainMaxY <= mainMinY {
+			statusHeight = 0
+			mainMaxY = d.Max.Y
+		}
+	}
+
+	d.grid.SetRect(d.Min.X, mainMinY, d.Max.X, mainMaxY)
 	d.grid.Draw(buf)
+
+	if statusHeight > 0 {
+		d.statusBar.SetRect(d.Min.X, mainMaxY, d.Max.X, d.Max.Y)
+		d.statusBar.Draw(buf)
+	}
 
 	if d.modal != nil {
 		d.modal.modal.BorderRounded = true
@@ -931,7 +948,10 @@ func (d *dashboard) copySelectedField() {
 		return
 	}
 
-	d.clipboard.Copy(field.payload)
+	if err := clipboard.WriteAll(field.payload); err != nil {
+		d.setStatus(fmt.Sprintf("Copy failed: %v", err))
+		return
+	}
 	d.setStatus(fmt.Sprintf("Copied %s", field.name))
 }
 
@@ -1056,7 +1076,48 @@ func newTextPrompt(title, prompt, placeholder string, onSubmit func(string)) *te
 
 func (d *dashboard) setStatus(msg string) {
 	d.status = msg
-	d.secretPane.SetStatus(msg)
+	d.statusIsError = isErrorStatus(msg)
+}
+
+const statusBarHeight = 3
+
+func (d *dashboard) statusText() string {
+	help := d.helpText()
+	if d.status == "" {
+		return help
+	}
+	prefix := "[OK](fg:green)"
+	if d.statusIsError {
+		prefix = "[ERROR](fg:red)"
+	}
+	if help == "" {
+		return fmt.Sprintf("%s: %s", prefix, d.status)
+	}
+	return fmt.Sprintf("%s: %s | %s", prefix, d.status, help)
+}
+
+func (d *dashboard) helpText() string {
+	switch d.focus {
+	case focusContext:
+		return "Tab: secret pane | 2: secrets | 3: stores | q: quit"
+	case focusSecretsList:
+		return "j/k: move | Space: expand | /: search | e: edit | d: delete | Tab: pane"
+	case focusSecretsSearch:
+		return "Enter: apply | Esc: cancel | type to filter"
+	case focusStoresList:
+		return "j/k: move | Space: switch | /: search | d: delete | Tab: pane"
+	case focusStoresSearch:
+		return "Enter: apply | Esc: cancel | type to filter"
+	case focusSecretPane:
+		return "j/k: move | Space: copy | v: view | e: edit | d: delete | a: add | Tab: sidebar"
+	default:
+		return "q: quit"
+	}
+}
+
+func isErrorStatus(msg string) bool {
+	lower := strings.ToLower(msg)
+	return strings.Contains(lower, "fail") || strings.Contains(lower, "error")
 }
 
 type treeValue struct {
