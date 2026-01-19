@@ -25,7 +25,8 @@ run = "go mod tidy"
 depends = [ "test:*" ]
 
 [tasks."test:go-test"]
-run = "go test ./..."
+# exclude tests from ./cmd/tests
+run = "go test $(go list ./... | rg -v '/cmd/tests')"
 
 [tasks."test:lint"]
 run = "golangci-lint run"
