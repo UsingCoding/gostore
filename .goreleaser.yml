@@ -6,6 +6,7 @@ before:
   hooks:
     - mise r build
     - mise r test
+    - rm -rf dist
 
 builds:
   - id: gostore
