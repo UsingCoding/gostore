@@ -17,9 +17,9 @@ import (
 	"github.com/UsingCoding/gostore/internal/cli/cmd/mgnt"
 	"github.com/UsingCoding/gostore/internal/cli/cmd/store"
 	"github.com/UsingCoding/gostore/internal/cli/cmd/totp"
-	"github.com/UsingCoding/gostore/internal/common/slices"
-
+	"github.com/UsingCoding/gostore/internal/cli/tui"
 	"github.com/UsingCoding/gostore/internal/common/errors"
+	"github.com/UsingCoding/gostore/internal/common/slices"
 	"github.com/UsingCoding/gostore/internal/gostore/app/verbose"
 	"github.com/UsingCoding/gostore/internal/gostore/infrastructure/consoleoutput"
 )
@@ -52,6 +52,9 @@ func runApp(ctx context.Context, args []string) error {
 		Usage:                "Secrets store manager",
 		EnableBashCompletion: true,
 		Before:               BeforeHook,
+		Action: func(c *cli.Context) error {
+			return tui.TUI(c.Context)
+		},
 		Commands: slices.Merge(
 			app.Main(),
 			core.Main(),

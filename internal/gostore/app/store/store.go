@@ -15,6 +15,7 @@ import (
 var (
 	reservedPaths = []string{
 		ManifestPath,
+		".gitignore",
 	}
 )
 
