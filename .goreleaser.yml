@@ -4,7 +4,8 @@ project_name: gostore
 
 before:
   hooks:
-    - mise test
+    - mise r build
+    - mise r test
 
 builds:
   - id: gostore
@@ -49,16 +50,16 @@ archives:
       {{- else }}{{ .Arch }}{{ end }}
 
 checksum:
-  name_template: 'checksums.txt'
+  name_template: "checksums.txt"
 
 changelog:
   sort: asc
   filters:
     exclude:
-      - '^docs:'
-      - '^test:'
-      - '^ci:'
-      - '^version-increment:'
+      - "^docs:"
+      - "^test:"
+      - "^ci:"
+      - "^version-increment:"
 
 release:
   github:
